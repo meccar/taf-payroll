@@ -8,6 +8,13 @@
   A comprehensive payroll management system built with <a href="http://nodejs.org" target="_blank">Node.js</a> and <a href="https://nestjs.com" target="_blank">NestJS</a>.
 </p>
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/@nestjs/core" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
+  <a href="LICENSE" target="_blank"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" /></a>
+  <img src="https://img.shields.io/badge/node-%3E%3D22.x-brightgreen.svg" alt="Node.js Version" />
+  <img src="https://img.shields.io/badge/typescript-5.7+-blue.svg" alt="TypeScript Version" />
+</p>
+
 ## 📋 Table of Contents
 
 - [Description](#description)
@@ -395,15 +402,27 @@ Automatically wraps all successful responses in the standard format.
 
 ## Contributing
 
-1. Create a feature branch
-2. Make your changes
-3. Ensure all tests pass
-4. Ensure code quality checks pass (pre-commit/pre-push hooks)
-5. Submit a pull request
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Ensure all tests pass (`yarn test`)
+5. Ensure code quality checks pass (pre-commit/pre-push hooks)
+6. Commit your changes (`git commit -m 'Add some amazing feature'`)
+7. Push to the branch (`git push origin feature/amazing-feature`)
+8. Open a Pull Request
+
+### Development Guidelines
+
+- Follow the existing code style
+- Write tests for new features
+- Update documentation as needed
+- Ensure all linting and type checks pass
 
 ## License
 
-This project is private and proprietary.
+This project is open source and available under the [MIT License](LICENSE).
 
 ## Resources
 

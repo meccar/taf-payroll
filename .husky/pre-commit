@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+echo ""
+
+echo "🔍 Linting..."
+yarn lint:check
+if [ $? -ne 0 ]; then
+  echo "❌ Linting failed. Please fix the errors before committing."
+  echo "💡 Run 'yarn lint' to auto-fix some issues."
+  exit 1
+fi
+
+echo "✅ Linting passed"
+echo ""
+
+echo "💅 Formatting check..."
+yarn format:check
+if [ $? -ne 0 ]; then
+  echo "❌ Formatting check failed. Please fix the formatting before committing."
+  echo "💡 Run 'yarn format' to auto-format the code."
+  exit 1
+fi
+
+echo "✅ Formatting check passed"
+echo ""
+
+echo "✅ All pre-commit checks passed!"

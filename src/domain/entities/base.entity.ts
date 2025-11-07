@@ -1,3 +1,4 @@
+import { ulid } from 'ulid';
 import { DataTypes } from 'sequelize';
 import {
   Column,
@@ -11,8 +12,8 @@ import {
 export abstract class BaseEntity extends Model {
   @PrimaryKey
   @Column({
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    type: DataTypes.STRING(26),
+    defaultValue: () => ulid(),
   })
   declare id: string;
 
@@ -27,4 +28,10 @@ export abstract class BaseEntity extends Model {
   @DeletedAt
   @Column({ field: 'deleted_at', allowNull: true })
   declare deletedAt?: Date;
+
+  @Column({ field: 'created_by', allowNull: true })
+  declare createdBy?: string;
+
+  @Column({ field: 'updated_by', allowNull: true })
+  declare updatedBy?: string;
 }

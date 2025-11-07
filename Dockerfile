@@ -3,28 +3,34 @@ FROM node:22-alpine3.21 AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json* ./
+# Install yarn classic (v1) for compatibility with existing yarn.lock
+RUN corepack enable && corepack prepare yarn@1.22.22 --activate
 
-# Install dependencies
-RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+# Copy package files
+COPY package.json yarn.lock ./
+
+# Install dependencies (skip husky prepare script)
+RUN yarn install --frozen-lockfile --ignore-scripts || yarn install --ignore-scripts
 
 # Copy source code
 COPY . .
 
 # Build application
-RUN npm run build
+RUN yarn build
 
 # Production stage
 FROM node:22-alpine3.21 AS production
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json* ./
+# Install yarn classic (v1) for compatibility with existing yarn.lock
+RUN corepack enable && corepack prepare yarn@1.22.22 --activate
 
-# Install production dependencies only
-RUN npm ci --only=production --legacy-peer-deps || npm install --only=production --legacy-peer-deps
+# Copy package files
+COPY package.json yarn.lock ./
+
+# Install production dependencies only (skip husky prepare script)
+RUN yarn install --frozen-lockfile --production --ignore-scripts || yarn install --production --ignore-scripts
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist

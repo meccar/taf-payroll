@@ -9,9 +9,7 @@ import { DatabaseConfig } from './database.config';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
         const dbConfig = configService.get<DatabaseConfig>('database');
-        if (!dbConfig) {
-          throw new Error('Database configuration not found');
-        }
+        if (!dbConfig) throw new Error('Database configuration not found');
         return {
           dialect: dbConfig.dialect,
           host: dbConfig.host,

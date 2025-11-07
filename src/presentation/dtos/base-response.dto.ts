@@ -7,7 +7,7 @@ import type { PaginationInput } from '../../shared/types/response.types';
 export class BaseResponseDto<T = unknown> {
   @ApiProperty({
     description: 'HTTP status code',
-    example: 200,
+    example: HttpStatus.OK,
   })
   status: ResponseStatus;
 

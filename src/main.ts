@@ -14,7 +14,7 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || APP.DEFAULT_PORT;
-  const environment = configService.get<string>('NODE_ENV') || APP.DEFAULT_ENV;
+  const environment = configService.get<string>('NODE_ENV') || APP.DEV;
 
   // Global prefix
   app.setGlobalPrefix(API.PREFIX);
@@ -28,12 +28,12 @@ async function bootstrap() {
   // CORS Configuration
   app.enableCors({
     origin:
-      environment === 'production'
+      environment === APP.PROD
         ? configService.get<string>('CORS_ORIGIN')?.split(',') || []
         : true,
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    methods: API.CORS_METHODS,
+    allowedHeaders: API.CORS_HEADERS,
   });
 
   // Global Exception Filter
@@ -51,7 +51,7 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
-      disableErrorMessages: environment === 'production',
+      disableErrorMessages: environment === APP.PROD,
       exceptionFactory: (errors) => {
         const formattedErrors = errors.reduce(
           (acc, error) => {
@@ -70,19 +70,19 @@ async function bootstrap() {
   );
 
   // Swagger Documentation
-  if (environment !== 'production') {
+  if (environment !== APP.PROD) {
     const config = new DocumentBuilder()
       .setTitle(SWAGGER.TITLE)
       .setDescription(SWAGGER.DESCRIPTION)
       .setVersion(SWAGGER.VERSION)
       .addBearerAuth(
         {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-          name: 'JWT',
+          type: SWAGGER.BEARER_AUTH.TYPE,
+          scheme: SWAGGER.BEARER_AUTH.SCHEME,
+          bearerFormat: SWAGGER.BEARER_AUTH.BEARER_FORMAT,
+          name: SWAGGER.BEARER_AUTH.NAME,
           description: SWAGGER.BEARER_DESCRIPTION,
-          in: 'header',
+          in: SWAGGER.BEARER_AUTH.IN,
         },
         API.BEARER_AUTH_NAME,
       )
@@ -102,10 +102,12 @@ async function bootstrap() {
 
   await app.listen(port);
 
-  console.log(`🚀 Application is running on: http://localhost:${port}`);
-  if (environment !== 'production') {
-    console.log(`📚 Swagger documentation: http://localhost:${port}/api/docs`);
-  }
+  const baseUrl = `http://localhost:${port}`;
+  console.log(`${MESSAGES.APPLICATION_RUNNING} ${baseUrl}`);
+  if (environment !== APP.PROD)
+    console.log(
+      `${MESSAGES.SWAGGER_DOCUMENTATION} ${baseUrl}/${API.DOCS_PATH}`,
+    );
 }
 
 bootstrap().catch((error) => {

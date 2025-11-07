@@ -225,12 +225,14 @@ yarn test:debug
 ### Pre-commit Checks
 
 Before each commit, the following checks run automatically:
+
 - ESLint validation
 - Prettier formatting check
 
 ### Pre-push Checks
 
 Before each push, the following checks run automatically:
+
 - TypeScript type checking
 - ESLint validation
 - Prettier formatting check
@@ -240,6 +242,7 @@ Before each push, the following checks run automatically:
 The project includes SonarQube for continuous code quality analysis:
 
 1. **Start SonarQube:**
+
 ```bash
 docker-compose up -d sonarqube cloudflared
 ```
@@ -249,6 +252,7 @@ docker-compose up -d sonarqube cloudflared
    - Default credentials: `admin/admin`
 
 3. **Run analysis:**
+
 ```bash
 yarn sonar
 ```
@@ -375,6 +379,7 @@ taf-payroll/
 ### Base Entity
 
 All domain entities extend `BaseEntity` which provides:
+
 - UUID primary key
 - `createdAt`, `updatedAt` timestamps
 - Soft delete with `deletedAt`
@@ -382,6 +387,7 @@ All domain entities extend `BaseEntity` which provides:
 ### Base Repository
 
 All repositories extend `BaseRepository` which provides:
+
 - `findAll(options)` - Find all records
 - `findById(id, options)` - Find by ID
 - `findOne(options)` - Find one record

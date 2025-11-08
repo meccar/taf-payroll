@@ -44,27 +44,21 @@ export abstract class BaseRepository<T extends BaseEntity = BaseEntity>
     transaction?: Transaction,
   ): Promise<T> {
     const instance = await this.findById(id);
-    if (!instance) {
-      throw new Error(REPOSITORY_MESSAGES.ENTITY_NOT_FOUND(id));
-    }
+    if (!instance) throw new Error(REPOSITORY_MESSAGES.ENTITY_NOT_FOUND(id));
     await instance.update(data, { transaction });
     return instance;
   }
 
   async delete(id: string, transaction?: Transaction): Promise<boolean> {
     const instance = await this.findById(id);
-    if (!instance) {
-      return false;
-    }
+    if (!instance) return false;
     await instance.destroy({ transaction, force: true });
     return true;
   }
 
   async softDelete(id: string, transaction?: Transaction): Promise<boolean> {
     const instance = await this.findById(id);
-    if (!instance) {
-      return false;
-    }
+    if (!instance) return false;
     await instance.destroy({ transaction, force: false });
     return true;
   }

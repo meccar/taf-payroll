@@ -1,7 +1,6 @@
-import { FindOptions, Transaction } from 'sequelize';
-import { BaseEntity } from '../entities/base.entity';
+import { FindOptions, Model, Transaction } from 'sequelize';
 
-export interface IBaseRepository<T extends BaseEntity = BaseEntity> {
+export interface IBaseRepository<T extends Model = Model> {
   findAll(options?: FindOptions): Promise<T[]>;
   findById(id: string, options?: FindOptions): Promise<T | null>;
   findOne(options: FindOptions): Promise<T | null>;

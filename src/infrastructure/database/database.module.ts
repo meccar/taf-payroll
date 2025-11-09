@@ -2,6 +2,15 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { DatabaseConfig } from './database.config';
+import {
+  Role,
+  RoleClaim,
+  User,
+  UserClaim,
+  UserLogin,
+  UserRole,
+  UserToken,
+} from '../../domain/entities';
 
 @Module({
   imports: [
@@ -36,6 +45,15 @@ import { DatabaseConfig } from './database.config';
                   }
                 : false,
           },
+          models: [
+            User,
+            Role,
+            UserRole,
+            RoleClaim,
+            UserClaim,
+            UserLogin,
+            UserToken,
+          ],
         };
       },
       inject: [ConfigService],

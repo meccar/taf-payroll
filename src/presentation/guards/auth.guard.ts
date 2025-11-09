@@ -6,6 +6,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { AUTH_SERVICE_TOKEN, AuthRequirements } from '../../application/auth';
@@ -19,12 +20,23 @@ import {
   AuthMetadata,
   DEFAULT_AUTH_METADATA,
 } from '../auth/auth.metadata';
+import type {
+  AuthConfig,
+  PasetoConfig,
+} from '../../infrastructure/auth/auth.config';
 
 type CookieBag = Record<string, string | undefined>;
+
+type PasetoValidationOptions = {
+  audience?: string | string[];
+  issuer?: string;
+  clockTolerance?: string | number;
+};
 
 type RequestWithUser = Request & {
   user?: AuthenticatedUser;
   cookies?: CookieBag;
+  __pasetoValidationOptions?: PasetoValidationOptions;
 };
 
 @Injectable()
@@ -33,6 +45,7 @@ export class AuthGuard implements CanActivate {
     @Inject(AUTH_SERVICE_TOKEN)
     private readonly authService: AuthService,
     private readonly reflector: Reflector,
+    private readonly configService: ConfigService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -42,6 +55,9 @@ export class AuthGuard implements CanActivate {
     );
 
     const request = context.switchToHttp().getRequest<RequestWithUser>();
+    const validationOptions = this.buildValidationOptions(metadata);
+    request.__pasetoValidationOptions = validationOptions;
+
     const token = this.extractToken(
       request,
       metadata?.token ?? DEFAULT_AUTH_METADATA.token,
@@ -63,6 +79,7 @@ export class AuthGuard implements CanActivate {
     };
 
     this.ensureAuthorization(user, requirements);
+    this.ensureTokenConstraints(user, validationOptions);
 
     return true;
   }
@@ -157,5 +174,51 @@ export class AuthGuard implements CanActivate {
       return requirements.policies.every((policy) => userPolicies.has(policy));
 
     return requirements.policies.some((policy) => userPolicies.has(policy));
+  }
+
+  private buildValidationOptions(
+    metadata?: AuthMetadata,
+  ): PasetoValidationOptions {
+    const pasetoConfig =
+      this.configService.get<PasetoConfig>('auth.paseto') ??
+      this.configService.get<AuthConfig>('auth')?.paseto;
+
+    return {
+      audience: metadata?.audience ?? pasetoConfig?.audience,
+      issuer: metadata?.issuer ?? pasetoConfig?.issuer,
+      clockTolerance: metadata?.clockTolerance ?? pasetoConfig?.clockTolerance,
+    };
+  }
+
+  private ensureTokenConstraints(
+    user: AuthenticatedUser,
+    options: PasetoValidationOptions,
+  ): void {
+    if (options.issuer) {
+      const issuer = (user as Record<string, unknown>).issuer ?? user['iss'];
+      if (issuer !== options.issuer)
+        throw new ForbiddenException('Token issued by an unauthorized issuer');
+    }
+
+    if (!options.audience) return;
+
+    const expectedAudiences = Array.isArray(options.audience)
+      ? options.audience
+      : [options.audience];
+
+    const audienceValue =
+      (user as Record<string, unknown>).audience ?? user['aud'];
+    const userAudiences = Array.isArray(audienceValue)
+      ? audienceValue
+      : audienceValue
+        ? [audienceValue]
+        : [];
+
+    const hasRequiredAudience = expectedAudiences.every((audience) =>
+      userAudiences.includes(audience),
+    );
+
+    if (!hasRequiredAudience)
+      throw new ForbiddenException('Token intended for a different audience');
   }
 }

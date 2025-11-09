@@ -5,6 +5,9 @@ export interface AuthMetadata {
   policies: string[];
   requireAllRoles: boolean;
   requireAllPolicies: boolean;
+  issuer?: string;
+  audience?: string | string[];
+  clockTolerance?: string | number;
   token: TokenResolutionOptions;
 }
 
@@ -15,6 +18,9 @@ export const DEFAULT_AUTH_METADATA: AuthMetadata = {
   policies: [],
   requireAllRoles: true,
   requireAllPolicies: true,
+  issuer: undefined,
+  audience: undefined,
+  clockTolerance: undefined,
   token: {
     tokenSource: 'header',
     headerName: 'authorization',

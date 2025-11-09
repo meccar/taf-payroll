@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { FindOptions, Model, Transaction, WhereOptions } from 'sequelize';
-import { BaseEntity } from '../../domain/entities/base.entity';
 import { IBaseRepository } from '../../domain/repositories/base.repository.interface';
 import { REPOSITORY_MESSAGES } from '../../shared/messages/repository.messages';
 
 @Injectable()
-export abstract class BaseRepository<T extends BaseEntity = BaseEntity>
+export abstract class BaseRepository<T extends Model>
   implements IBaseRepository<T>
 {
   constructor(protected readonly model: typeof Model & { new (): T }) {}

@@ -12,6 +12,9 @@ export interface AuthOptions {
   policies?: string[];
   requireAllRoles?: boolean;
   requireAllPolicies?: boolean;
+  issuer?: string;
+  audience?: string | string[];
+  clockTolerance?: string | number;
   token?: Partial<TokenResolutionOptions>;
 }
 
@@ -25,6 +28,10 @@ export function Auth(
       options.requireAllRoles ?? DEFAULT_AUTH_METADATA.requireAllRoles,
     requireAllPolicies:
       options.requireAllPolicies ?? DEFAULT_AUTH_METADATA.requireAllPolicies,
+    issuer: options.issuer ?? DEFAULT_AUTH_METADATA.issuer,
+    audience: options.audience ?? DEFAULT_AUTH_METADATA.audience,
+    clockTolerance:
+      options.clockTolerance ?? DEFAULT_AUTH_METADATA.clockTolerance,
     token: {
       ...DEFAULT_AUTH_METADATA.token,
       ...(options.token ?? {}),

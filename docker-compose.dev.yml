@@ -1,0 +1,10 @@
+# docker-compose.dev.yml
+services:
+  app:
+    build:
+      dockerfile: ./scripts/compose/Dockerfile.dev
+    volumes:
+      - ./:/app
+    command: yarn start:dev
+    environment:
+      NODE_ENV: development

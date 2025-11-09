@@ -3,10 +3,6 @@ import { Sequelize } from 'sequelize-typescript';
 import { Transaction, TransactionOptions } from 'sequelize';
 
 export interface TransactionalOptions extends Partial<TransactionOptions> {
-  /**
-   * Customize the property name on the decorated service that holds the Sequelize instance.
-   * Defaults to searching for common property names such as `sequelize` or `connection`.
-   */
   connectionPropertyKey?: string;
 }
 

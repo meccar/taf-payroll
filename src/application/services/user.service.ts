@@ -3,6 +3,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { FindOptions, Transaction, WhereOptions } from 'sequelize';
 import {
   Role,
@@ -19,10 +20,17 @@ import {
   generateConcurrencyStamp,
   generateSecurityStamp,
 } from '../../shared/utils';
+import { generatePasetoToken } from '../../shared/utils/paseto.util';
+
+const isNonEmptyString = (value: unknown): value is string =>
+  typeof value === 'string' && value.length > 0;
 
 @Injectable()
 export class UserService extends BaseService<User> {
-  constructor(private readonly userRepository: UserRepository) {
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly configService: ConfigService,
+  ) {
     super(userRepository);
   }
 
@@ -59,7 +67,7 @@ export class UserService extends BaseService<User> {
     return createdUser;
   }
 
-  async login(user: Partial<User>): Promise<User> {
+  async login(user: Partial<User>): Promise<string> {
     if (!user.normalizedEmail && !user.normalizedUserName)
       throw new BadRequestException('Email or username is required');
 
@@ -115,7 +123,8 @@ export class UserService extends BaseService<User> {
         'Two-factor authentication is not enabled',
       );
 
-    return existingUser;
+    const payload = await this.buildPasetoPayload(existingUser);
+    return generatePasetoToken(this.configService, payload);
   }
 
   async handleFailedLogin(user: User): Promise<void> {
@@ -213,5 +222,38 @@ export class UserService extends BaseService<User> {
     if (!user) return null;
     await user.update({ lockoutEnd }, { transaction });
     return user;
+  }
+
+  private async buildPasetoPayload(
+    user: User,
+  ): Promise<Record<string, unknown>> {
+    const [roles, claims] = await Promise.all([
+      this.getRoles(user.id),
+      this.getClaims(user.id),
+    ]);
+
+    const roleNames = roles.map((role) => role.name).filter(isNonEmptyString);
+    const policyClaims = claims
+      .filter((claim) => claim.claimType === 'policy')
+      .map((claim) => claim.claimValue)
+      .filter(isNonEmptyString);
+
+    const payload: Record<string, unknown> = {
+      sub: user.id,
+    };
+
+    if (user.email) {
+      payload.email = user.email;
+    }
+
+    if (roleNames.length > 0) {
+      payload.roles = roleNames;
+    }
+
+    if (policyClaims.length > 0) {
+      payload.policies = policyClaims;
+    }
+
+    return payload;
   }
 }

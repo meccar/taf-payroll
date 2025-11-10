@@ -2,6 +2,7 @@ import { registerAs } from '@nestjs/config';
 
 export interface PasetoConfig {
   publicKey: string;
+  privateKey: string;
   audience?: string | string[];
   issuer?: string;
   clockTolerance?: string | number;
@@ -25,6 +26,7 @@ const parseAudience = (rawAudience?: string): string | string[] | undefined => {
 export default registerAs<AuthConfig>('auth', () => ({
   paseto: {
     publicKey: process.env.PASETO_PUBLIC_KEY ?? '',
+    privateKey: process.env.PASETO_PRIVATE_KEY ?? '',
     audience: parseAudience(process.env.PASETO_AUDIENCE),
     issuer: process.env.PASETO_ISSUER,
     clockTolerance: process.env.PASETO_CLOCK_TOLERANCE,

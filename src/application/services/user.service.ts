@@ -16,11 +16,13 @@ import { BaseService } from './base.service';
 import { UserRepository } from '../../infrastructure/repositories/user.repository';
 import * as bcrypt from 'bcrypt';
 import { SECURITY } from '../../shared/constants/security.constants';
+import { AUTH } from '../../shared/constants/auth.constants';
 import {
   generateConcurrencyStamp,
   generateSecurityStamp,
 } from '../../shared/utils';
 import { generatePasetoToken } from '../../shared/utils/paseto.util';
+import { AUTH_MESSAGES } from '../../shared/messages/auth.messages';
 
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === 'string' && value.length > 0;
@@ -40,10 +42,10 @@ export class UserService extends BaseService<User> {
 
   async createUser(user: Partial<User>): Promise<User> {
     if (!user.normalizedEmail && !user.normalizedUserName)
-      throw new BadRequestException('Email or username is required');
+      throw new BadRequestException(AUTH_MESSAGES.EMAIL_OR_USERNAME_REQUIRED);
 
     if (!user.passwordHash)
-      throw new BadRequestException('Password is required');
+      throw new BadRequestException(AUTH_MESSAGES.PASSWORD_REQUIRED);
 
     let existingUser: User | null = null;
 
@@ -53,7 +55,8 @@ export class UserService extends BaseService<User> {
     if (!existingUser && user.normalizedUserName)
       existingUser = await this.findByUserName(user.normalizedUserName);
 
-    if (existingUser) throw new BadRequestException('User already exists');
+    if (existingUser)
+      throw new BadRequestException(AUTH_MESSAGES.USER_ALREADY_EXISTS);
 
     user.passwordHash = await bcrypt.hash(
       user.passwordHash,
@@ -69,10 +72,10 @@ export class UserService extends BaseService<User> {
 
   async login(user: Partial<User>): Promise<string> {
     if (!user.normalizedEmail && !user.normalizedUserName)
-      throw new BadRequestException('Email or username is required');
+      throw new BadRequestException(AUTH_MESSAGES.EMAIL_OR_USERNAME_REQUIRED);
 
     if (!user.passwordHash)
-      throw new BadRequestException('Password is required');
+      throw new BadRequestException(AUTH_MESSAGES.PASSWORD_REQUIRED);
 
     let existingUser: User | null = null;
 
@@ -82,7 +85,8 @@ export class UserService extends BaseService<User> {
     if (!existingUser && user.normalizedUserName)
       existingUser = await this.findByUserName(user.normalizedUserName);
 
-    if (!existingUser) throw new UnauthorizedException('Unauthorized');
+    if (!existingUser)
+      throw new UnauthorizedException(AUTH_MESSAGES.UNAUTHORIZED);
 
     if (existingUser.lockoutEnabled && existingUser.lockoutEnd) {
       const now = new Date();
@@ -91,7 +95,7 @@ export class UserService extends BaseService<User> {
           (existingUser.lockoutEnd.getTime() - now.getTime()) / 60000,
         );
         throw new UnauthorizedException(
-          `Account is locked. Try again in ${remainingMinutes} minutes.`,
+          AUTH_MESSAGES.ACCOUNT_LOCKED(remainingMinutes),
         );
       }
     }
@@ -102,7 +106,7 @@ export class UserService extends BaseService<User> {
     );
     if (!isPasswordValid) {
       await this.handleFailedLogin(existingUser);
-      throw new UnauthorizedException('Unauthorized');
+      throw new UnauthorizedException(AUTH_MESSAGES.UNAUTHORIZED);
     }
 
     if (
@@ -116,12 +120,10 @@ export class UserService extends BaseService<User> {
     }
 
     if (user.normalizedEmail && !existingUser.emailConfirmed)
-      throw new UnauthorizedException('Email is not confirmed');
+      throw new UnauthorizedException(AUTH_MESSAGES.EMAIL_NOT_CONFIRMED);
 
     if (!existingUser.twoFactorEnabled)
-      throw new UnauthorizedException(
-        'Two-factor authentication is not enabled',
-      );
+      throw new UnauthorizedException(AUTH_MESSAGES.TWO_FACTOR_NOT_ENABLED);
 
     const payload = await this.buildPasetoPayload(existingUser);
     return generatePasetoToken(this.configService, payload);
@@ -131,8 +133,8 @@ export class UserService extends BaseService<User> {
     if (!user.lockoutEnabled) return;
 
     const updatedFailedCount = (user.accessFailedCount ?? 0) + 1;
-    const maxAttempts = 5;
-    const lockoutMinutes = 15;
+    const maxAttempts: number = AUTH.LOCKOUT.MAX_ATTEMPTS;
+    const lockoutMinutes: number = AUTH.LOCKOUT.MINUTES;
 
     if (updatedFailedCount >= maxAttempts) {
       const lockoutEnd = new Date(Date.now() + lockoutMinutes * 60 * 1000);

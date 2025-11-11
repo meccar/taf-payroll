@@ -2,6 +2,7 @@ export * from './success.messages';
 export * from './error.messages';
 export * from './info.messages';
 export * from './repository.messages';
+export * from './auth.messages';
 
 // Combined MESSAGES object for backward compatibility
 import { SUCCESS_MESSAGES } from './success.messages';

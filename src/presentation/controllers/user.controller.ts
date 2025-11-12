@@ -10,17 +10,15 @@ export class UserController {
 
   @Get()
   async getUsers(): Promise<UserResponseDto[]> {
-    const users = await this.userService.getUsers();
-    return UserMapper.toResponseList(users);
+    return UserMapper.toResponseList(await this.userService.getUsers());
   }
 
   @Post()
   async createUser(
     @Body() createUserDto: CreateUserDto,
   ): Promise<UserResponseDto> {
-    const user = await this.userService.createUser(
-      UserMapper.toEntity(createUserDto),
+    return UserMapper.toResponse(
+      await this.userService.createUser(UserMapper.toEntity(createUserDto)),
     );
-    return UserMapper.toResponse(user);
   }
 }

@@ -1,4 +1,5 @@
 export const AUTH_MESSAGES = {
+  FAILED_TO_CREATE_USER: 'Failed to create user',
   EMAIL_OR_USERNAME_REQUIRED: 'Email or username is required',
   PASSWORD_REQUIRED: 'Password is required',
   USER_ALREADY_EXISTS: 'User already exists',

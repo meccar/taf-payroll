@@ -1,28 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { FindOptions, Transaction, WhereOptions } from 'sequelize';
+import { Transaction } from 'sequelize';
 import { RoleClaim } from '../../domain/entities';
 import { BaseService } from './base.service';
-import { RoleClaimRepository } from '../../infrastructure/repositories/role-claim.repository';
 
 @Injectable()
 export class RoleClaimService extends BaseService<RoleClaim> {
-  constructor(
-    protected readonly roleClaimRepository: RoleClaimRepository,
-    protected readonly eventEmitter: EventEmitter2,
-  ) {
-    super(roleClaimRepository, eventEmitter);
+  constructor(protected readonly eventEmitter: EventEmitter2) {
+    super(RoleClaim, eventEmitter);
   }
 
   protected getEntityName(): string {
     return RoleClaim.name;
   }
 
-  async getRoleClaims(
-    roleId: string,
-    options?: FindOptions,
-  ): Promise<RoleClaim[]> {
-    return this.roleClaimRepository.findByRoleId(roleId, options);
+  async getRoleClaims(roleId: string): Promise<RoleClaim[]> {
+    return this.findAll({
+      where: { roleId },
+    });
   }
 
   async addClaimToRole(
@@ -31,18 +26,20 @@ export class RoleClaimService extends BaseService<RoleClaim> {
     claimValue: string,
     transaction?: Transaction,
   ): Promise<RoleClaim> {
-    return this.roleClaimRepository.addClaim(
-      roleId,
-      claimType,
-      claimValue,
+    const result = await this.create(
+      {
+        roleId,
+        claimType,
+        claimValue,
+      },
+      undefined,
       transaction,
     );
+    if (!result) throw new BadRequestException('Failed to add claim to role');
+    return result;
   }
 
-  async removeClaims(
-    where: WhereOptions<RoleClaim>,
-    transaction?: Transaction,
-  ): Promise<number> {
-    return this.roleClaimRepository.removeClaims(where, transaction);
+  async removeClaims(id: string, transaction?: Transaction): Promise<boolean> {
+    return this.delete(id, undefined, transaction);
   }
 }

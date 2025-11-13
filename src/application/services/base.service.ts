@@ -1,5 +1,10 @@
-import { FindOptions, Transaction, WhereOptions, Model } from 'sequelize';
-import { IBaseRepository } from '../../domain/repositories';
+import {
+  FindOptions,
+  Transaction,
+  WhereOptions,
+  Model,
+  ModelStatic,
+} from 'sequelize';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   EntityCreatedEvent,
@@ -16,7 +21,7 @@ export interface AuditContext {
 
 export abstract class BaseService<T extends Model> {
   protected constructor(
-    protected readonly repository: IBaseRepository<T>,
+    protected readonly model: ModelStatic<T>,
     protected readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -27,15 +32,24 @@ export abstract class BaseService<T extends Model> {
   }
 
   async findAll(options?: FindOptions): Promise<T[]> {
-    return this.repository.findAll(options);
+    return this.model.findAll({
+      ...options,
+      paranoid: options?.paranoid ?? true,
+    });
   }
 
   async findById(id: string, options?: FindOptions): Promise<T | null> {
-    return this.repository.findById(id, options);
+    return this.model.findByPk(id, {
+      ...options,
+      paranoid: options?.paranoid ?? true,
+    });
   }
 
   async findOne(options: FindOptions): Promise<T | null> {
-    return this.repository.findOne(options);
+    return this.model.findOne({
+      ...options,
+      paranoid: options?.paranoid ?? true,
+    });
   }
 
   async create(
@@ -43,7 +57,9 @@ export abstract class BaseService<T extends Model> {
     context?: AuditContext,
     transaction?: Transaction,
   ): Promise<T | null> {
-    const entity = await this.repository.create(data, transaction);
+    const entity = await this.model.create(data as T['_creationAttributes'], {
+      transaction,
+    });
     if (!entity) return null;
 
     if (this.shouldAudit())
@@ -71,11 +87,13 @@ export abstract class BaseService<T extends Model> {
     context?: AuditContext,
     transaction?: Transaction,
   ): Promise<T | null> {
-    const oldEntity = await this.repository.findById(id);
+    const oldEntity = await this.model.findByPk(id, {
+      paranoid: true,
+    });
     if (!oldEntity) return null;
 
     const oldValue: unknown = oldEntity.toJSON();
-    const updatedEntity = await this.repository.update(id, data, transaction);
+    const updatedEntity = await oldEntity.update(data, { transaction });
     const updatedValue: unknown = updatedEntity.toJSON();
 
     if (this.shouldAudit())
@@ -103,45 +121,17 @@ export abstract class BaseService<T extends Model> {
     context?: AuditContext,
     transaction?: Transaction,
   ): Promise<boolean> {
-    const entity = await this.repository.findById(id);
+    const entity = await this.model.findByPk(id, {
+      paranoid: true,
+    });
     if (!entity) return false;
 
     const oldValue: unknown = entity.toJSON();
-    const result = await this.repository.delete(id, transaction);
+    await entity.destroy({ transaction, force: false });
 
-    if (result && this.shouldAudit())
+    if (this.shouldAudit())
       this.eventEmitter.emit(
         'entity.deleted',
-        new EntityDeletedEvent(
-          this.getEntityName(),
-          id,
-          oldValue,
-          context?.userId,
-          {
-            ipAddress: context?.ipAddress,
-            requestId: context?.requestId,
-            ...context?.metadata,
-          },
-        ),
-      );
-
-    return result;
-  }
-
-  async softDelete(
-    id: string,
-    context?: AuditContext,
-    transaction?: Transaction,
-  ): Promise<boolean> {
-    const entity = await this.repository.findById(id);
-    if (!entity) return false;
-
-    const oldValue: unknown = entity.toJSON();
-    const result = await this.repository.softDelete(id, transaction);
-
-    if (result && this.shouldAudit())
-      this.eventEmitter.emit(
-        `${this.getEntityName()}.deleted`,
         new EntityDeletedEvent(
           this.getEntityName(),
           id,
@@ -155,21 +145,31 @@ export abstract class BaseService<T extends Model> {
         ),
       );
 
-    return result;
+    return true;
   }
 
   async count(options?: FindOptions): Promise<number> {
-    return this.repository.count(options);
+    return this.model.count({
+      ...options,
+      paranoid: options?.paranoid ?? true,
+    });
   }
 
   async exists(id: string): Promise<boolean> {
-    return this.repository.exists(id);
+    const entity = await this.model.findByPk(id, {
+      paranoid: true,
+    });
+    return entity != null;
   }
 
   async findByCondition(
     condition: WhereOptions,
     options?: FindOptions,
   ): Promise<T | null> {
-    return this.repository.findOne({ where: condition, ...options });
+    return this.model.findOne({
+      where: condition,
+      ...options,
+      paranoid: options?.paranoid ?? true,
+    });
   }
 }

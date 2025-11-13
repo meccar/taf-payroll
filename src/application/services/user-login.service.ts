@@ -1,17 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FindOptions, Transaction } from 'sequelize';
 import { UserLogin } from '../../domain/entities';
 import { BaseService } from './base.service';
-import { UserLoginRepository } from '../../infrastructure/repositories/user-login.repository';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class UserLoginService extends BaseService<UserLogin> {
-  constructor(
-    protected readonly userLoginRepository: UserLoginRepository,
-    protected readonly eventEmitter: EventEmitter2,
-  ) {
-    super(userLoginRepository, eventEmitter);
+  constructor(protected readonly eventEmitter: EventEmitter2) {
+    super(UserLogin, eventEmitter);
   }
 
   protected getEntityName(): string {
@@ -23,18 +19,20 @@ export class UserLoginService extends BaseService<UserLogin> {
     providerKey: string,
     options?: FindOptions,
   ): Promise<UserLogin | null> {
-    return this.userLoginRepository.findByLogin(
-      loginProvider,
-      providerKey,
-      options,
-    );
+    return UserLogin.findOne({
+      where: { loginProvider, providerKey },
+      ...options,
+    });
   }
 
   async getUserLogins(
     userId: string,
     options?: FindOptions,
   ): Promise<UserLogin[]> {
-    return this.userLoginRepository.findByUserId(userId, options);
+    return UserLogin.findAll({
+      where: { userId },
+      ...options,
+    });
   }
 
   async addLogin(
@@ -44,12 +42,14 @@ export class UserLoginService extends BaseService<UserLogin> {
     providerDisplayName?: string,
     transaction?: Transaction,
   ): Promise<UserLogin> {
-    return this.userLoginRepository.addLogin(
-      userId,
-      loginProvider,
-      providerKey,
-      providerDisplayName,
-      transaction,
+    return UserLogin.create(
+      {
+        userId,
+        loginProvider,
+        providerKey,
+        providerDisplayName,
+      },
+      { transaction },
     );
   }
 
@@ -59,11 +59,10 @@ export class UserLoginService extends BaseService<UserLogin> {
     providerKey: string,
     transaction?: Transaction,
   ): Promise<boolean> {
-    return this.userLoginRepository.removeLogin(
-      userId,
-      loginProvider,
-      providerKey,
+    const deleted = await UserLogin.destroy({
+      where: { userId, loginProvider, providerKey },
       transaction,
-    );
+    });
+    return deleted > 0;
   }
 }

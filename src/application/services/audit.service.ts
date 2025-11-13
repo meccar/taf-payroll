@@ -1,19 +1,10 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Audit } from 'src/domain/entities/audit.entity';
-import {
-  AUDIT_REPOSITORY_TOKEN,
-  type IAuditRepository,
-} from 'src/domain/repositories/audit.interface';
 import { ulid } from 'ulid';
 
 @Injectable()
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
-
-  constructor(
-    @Inject(AUDIT_REPOSITORY_TOKEN)
-    private readonly auditRepository: IAuditRepository,
-  ) {}
 
   async log(auditData: {
     entityName: string;
@@ -48,7 +39,7 @@ export class AuditService {
         );
       }
 
-      await this.auditRepository.save(audit);
+      await audit.save();
     } catch (error) {
       if (error instanceof Error) {
         this.logger.error(`Failed to log audit: ${error.message}`, error.stack);

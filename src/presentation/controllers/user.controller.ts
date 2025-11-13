@@ -1,16 +1,16 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
-import { UserService } from '../../application/services/user.service';
+import { UserUseCase } from '../../application/use-cases/user.use-case';
 import { CreateUserDto } from '../dtos/user/create-user.dto';
 import { UserResponseDto } from '../dtos/user/user-response.dto';
 import { UserMapper } from '../mappers/user.mapper';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userUseCase: UserUseCase) {}
 
   @Get()
   async getUsers(): Promise<UserResponseDto[]> {
-    return UserMapper.toResponseList(await this.userService.getUsers());
+    return UserMapper.toResponseList(await this.userUseCase.listUsers());
   }
 
   @Post()
@@ -18,7 +18,7 @@ export class UserController {
     @Body() createUserDto: CreateUserDto,
   ): Promise<UserResponseDto> {
     return UserMapper.toResponse(
-      await this.userService.createUser(UserMapper.toEntity(createUserDto)),
+      await this.userUseCase.createUser(UserMapper.toEntity(createUserDto)),
     );
   }
 }

@@ -8,24 +8,21 @@ import {
   UserService,
   UserTokenService,
 } from './services';
+import { UserUseCase } from './use-cases/user.use-case';
 
 @Module({
   imports: [InfrastructureModule],
   providers: [
+    // Services
     UserService,
     RoleService,
     UserClaimService,
     RoleClaimService,
     UserLoginService,
     UserTokenService,
+    // Use Cases
+    UserUseCase,
   ],
-  exports: [
-    UserService,
-    RoleService,
-    UserClaimService,
-    RoleClaimService,
-    UserLoginService,
-    UserTokenService,
-  ],
+  exports: [UserUseCase],
 })
 export class ApplicationModule {}

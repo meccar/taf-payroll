@@ -1,17 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FindOptions, Transaction } from 'sequelize';
 import { UserToken } from '../../domain/entities';
 import { BaseService } from './base.service';
-import { UserTokenRepository } from '../../infrastructure/repositories/user-token.repository';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class UserTokenService extends BaseService<UserToken> {
-  constructor(
-    private readonly userTokenRepository: UserTokenRepository,
-    protected readonly eventEmitter: EventEmitter2,
-  ) {
-    super(userTokenRepository, eventEmitter);
+  constructor(protected readonly eventEmitter: EventEmitter2) {
+    super(UserToken, eventEmitter);
   }
 
   protected getEntityName(): string {
@@ -24,19 +20,20 @@ export class UserTokenService extends BaseService<UserToken> {
     name: string,
     options?: FindOptions,
   ): Promise<UserToken | null> {
-    return this.userTokenRepository.getToken(
-      userId,
-      loginProvider,
-      name,
-      options,
-    );
+    return UserToken.findOne({
+      where: { userId, loginProvider, name },
+      ...options,
+    });
   }
 
   async getTokensByUser(
     userId: string,
     options?: FindOptions,
   ): Promise<UserToken[]> {
-    return this.userTokenRepository.getTokensByUser(userId, options);
+    return UserToken.findAll({
+      where: { userId },
+      ...options,
+    });
   }
 
   async setToken(
@@ -46,12 +43,20 @@ export class UserTokenService extends BaseService<UserToken> {
     value: string,
     transaction?: Transaction,
   ): Promise<UserToken> {
-    return this.userTokenRepository.setToken(
-      userId,
-      loginProvider,
-      name,
-      value,
-      transaction,
+    const existing = await this.getToken(userId, loginProvider, name);
+    if (existing) {
+      await existing.update({ value }, { transaction });
+      return existing;
+    }
+
+    return UserToken.create(
+      {
+        userId,
+        loginProvider,
+        name,
+        value,
+      },
+      { transaction },
     );
   }
 
@@ -61,11 +66,10 @@ export class UserTokenService extends BaseService<UserToken> {
     name: string,
     transaction?: Transaction,
   ): Promise<boolean> {
-    return this.userTokenRepository.removeToken(
-      userId,
-      loginProvider,
-      name,
+    const deleted = await UserToken.destroy({
+      where: { userId, loginProvider, name },
       transaction,
-    );
+    });
+    return deleted > 0;
   }
 }

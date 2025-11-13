@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { FindOptions, Transaction, WhereOptions } from 'sequelize';
+import { Transaction, WhereOptions } from 'sequelize';
 import {
   Role,
   User,
@@ -13,7 +13,6 @@ import {
   UserToken,
 } from '../../domain/entities';
 import { BaseService } from './base.service';
-import { UserRepository } from '../../infrastructure/repositories/user.repository';
 import * as bcrypt from 'bcrypt';
 import { SECURITY } from '../../shared/constants/security.constants';
 import { AUTH } from '../../shared/constants/auth.constants';
@@ -31,11 +30,10 @@ const isNonEmptyString = (value: unknown): value is string =>
 @Injectable()
 export class UserService extends BaseService<User> {
   constructor(
-    private readonly userRepository: UserRepository,
     private readonly configService: ConfigService,
     protected readonly eventEmitter: EventEmitter2,
   ) {
-    super(userRepository, eventEmitter);
+    super(User, eventEmitter);
   }
 
   protected getEntityName(): string {
@@ -71,7 +69,9 @@ export class UserService extends BaseService<User> {
     user.securityStamp = generateSecurityStamp();
     user.concurrencyStamp = generateConcurrencyStamp();
 
-    const createdUser = await this.userRepository.create(user);
+    const createdUser = await this.create(user);
+    if (!createdUser)
+      throw new BadRequestException(AUTH_MESSAGES.FAILED_TO_CREATE_USER);
 
     return createdUser;
   }
@@ -156,67 +156,58 @@ export class UserService extends BaseService<User> {
     }
   }
 
-  async findByEmail(
-    email: string,
-    options?: FindOptions,
-  ): Promise<User | null> {
-    return this.userRepository.findByEmail(email, options);
+  async findByEmail(email: string): Promise<User | null> {
+    return this.findOne({
+      where: { normalizedEmail: email.toUpperCase() },
+    });
   }
 
-  async findByUserName(
-    userName: string,
-    options?: FindOptions,
-  ): Promise<User | null> {
-    return this.userRepository.findByUserName(userName, options);
+  async findByUserName(userName: string): Promise<User | null> {
+    return this.findOne({
+      where: { normalizedUserName: userName.toUpperCase() },
+    });
   }
 
-  async addToRole(
-    userId: string,
-    roleId: string,
-    transaction?: Transaction,
-  ): Promise<void> {
-    await this.userRepository.addToRole(userId, roleId, transaction);
+  async getRoles(userId: string): Promise<Role[]> {
+    const user = await this.findById(userId, {
+      include: [
+        {
+          model: Role,
+          through: { attributes: [] },
+        },
+      ],
+    });
+    return user?.roles ?? [];
   }
 
-  async removeFromRole(
-    userId: string,
-    roleId: string,
-    transaction?: Transaction,
-  ): Promise<void> {
-    await this.userRepository.removeFromRole(userId, roleId, transaction);
+  async findByClaim(claim: WhereOptions): Promise<User | null> {
+    return this.findOne({
+      include: [
+        {
+          model: UserClaim,
+          where: claim,
+        },
+      ],
+    });
   }
 
-  async getRoles(userId: string, options?: FindOptions): Promise<Role[]> {
-    return this.userRepository.getRoles(userId, options);
-  }
-
-  async findByClaim(
-    claim: WhereOptions,
-    options?: FindOptions,
-  ): Promise<User | null> {
-    return this.userRepository.findByClaim(claim, options);
-  }
-
-  async getClaims(userId: string, options?: FindOptions): Promise<UserClaim[]> {
+  async getClaims(userId: string): Promise<UserClaim[]> {
     const user = await this.findById(userId, {
       include: [{ model: UserClaim }],
-      ...options,
     });
     return user?.claims ?? [];
   }
 
-  async getLogins(userId: string, options?: FindOptions): Promise<UserLogin[]> {
+  async getLogins(userId: string): Promise<UserLogin[]> {
     const user = await this.findById(userId, {
       include: [{ model: UserLogin }],
-      ...options,
     });
     return user?.logins ?? [];
   }
 
-  async getTokens(userId: string, options?: FindOptions): Promise<UserToken[]> {
+  async getTokens(userId: string): Promise<UserToken[]> {
     const user = await this.findById(userId, {
       include: [{ model: UserToken }],
-      ...options,
     });
     return user?.tokens ?? [];
   }
@@ -250,17 +241,11 @@ export class UserService extends BaseService<User> {
       sub: user.id,
     };
 
-    if (user.email) {
-      payload.email = user.email;
-    }
+    if (user.email) payload.email = user.email;
 
-    if (roleNames.length > 0) {
-      payload.roles = roleNames;
-    }
+    if (roleNames.length > 0) payload.roles = roleNames;
 
-    if (policyClaims.length > 0) {
-      payload.policies = policyClaims;
-    }
+    if (policyClaims.length > 0) payload.policies = policyClaims;
 
     return payload;
   }

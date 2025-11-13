@@ -22,6 +22,8 @@ type RoleInstance = InstanceType<typeof Role>;
 
 @Table({
   tableName: 'users',
+  timestamps: true,
+  paranoid: true,
 })
 export class User extends BaseEntity {
   @AllowNull(true)

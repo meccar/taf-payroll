@@ -6,6 +6,7 @@ import {
   Role,
   RoleClaim,
   User,
+  Audit,
   UserClaim,
   UserLogin,
   UserRole,
@@ -53,6 +54,7 @@ import {
             UserClaim,
             UserLogin,
             UserToken,
+            Audit,
           ],
         };
       },

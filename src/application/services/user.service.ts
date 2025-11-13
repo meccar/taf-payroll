@@ -23,6 +23,7 @@ import {
 } from '../../shared/utils';
 import { generatePasetoToken } from '../../shared/utils/paseto.util';
 import { AUTH_MESSAGES } from '../../shared/messages/auth.messages';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === 'string' && value.length > 0;
@@ -32,8 +33,13 @@ export class UserService extends BaseService<User> {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly configService: ConfigService,
+    protected readonly eventEmitter: EventEmitter2,
   ) {
-    super(userRepository);
+    super(userRepository, eventEmitter);
+  }
+
+  protected getEntityName(): string {
+    return User.name;
   }
 
   async getUsers(): Promise<User[]> {

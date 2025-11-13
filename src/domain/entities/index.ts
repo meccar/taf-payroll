@@ -6,3 +6,4 @@ export * from './user-claim.entity';
 export * from './role-claim.entity';
 export * from './user-login.entity';
 export * from './user-token.entity';
+export * from './audit.entity';

@@ -3,11 +3,19 @@ import { FindOptions, Transaction, WhereOptions } from 'sequelize';
 import { UserClaim } from '../../domain/entities';
 import { BaseService } from './base.service';
 import { UserClaimRepository } from '../../infrastructure/repositories/user-claim.repository';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class UserClaimService extends BaseService<UserClaim> {
-  constructor(private readonly userClaimRepository: UserClaimRepository) {
-    super(userClaimRepository);
+  constructor(
+    protected readonly userClaimRepository: UserClaimRepository,
+    protected readonly eventEmitter: EventEmitter2,
+  ) {
+    super(userClaimRepository, eventEmitter);
+  }
+
+  protected getEntityName(): string {
+    return UserClaim.name;
   }
 
   async getUserClaims(
@@ -35,7 +43,7 @@ export class UserClaimService extends BaseService<UserClaim> {
     claimId: number,
     transaction?: Transaction,
   ): Promise<boolean> {
-    return this.delete(String(claimId), transaction);
+    return this.delete(String(claimId), undefined, transaction);
   }
 
   async removeClaims(

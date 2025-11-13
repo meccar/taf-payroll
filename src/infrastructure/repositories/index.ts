@@ -5,3 +5,4 @@ export * from './user-claim.repository';
 export * from './role-claim.repository';
 export * from './user-login.repository';
 export * from './user-token.repository';
+export * from './audit.repository';

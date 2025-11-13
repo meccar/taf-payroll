@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FindOptions, Transaction, WhereOptions } from 'sequelize';
 import { RoleClaim } from '../../domain/entities';
 import { BaseService } from './base.service';
@@ -6,8 +7,15 @@ import { RoleClaimRepository } from '../../infrastructure/repositories/role-clai
 
 @Injectable()
 export class RoleClaimService extends BaseService<RoleClaim> {
-  constructor(private readonly roleClaimRepository: RoleClaimRepository) {
-    super(roleClaimRepository);
+  constructor(
+    protected readonly roleClaimRepository: RoleClaimRepository,
+    protected readonly eventEmitter: EventEmitter2,
+  ) {
+    super(roleClaimRepository, eventEmitter);
+  }
+
+  protected getEntityName(): string {
+    return RoleClaim.name;
   }
 
   async getRoleClaims(

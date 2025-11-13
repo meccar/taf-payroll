@@ -3,11 +3,19 @@ import { FindOptions, Transaction } from 'sequelize';
 import { Role, RoleClaim } from '../../domain/entities';
 import { BaseService } from './base.service';
 import { RoleRepository } from '../../infrastructure/repositories/role.repository';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class RoleService extends BaseService<Role> {
-  constructor(private readonly roleRepository: RoleRepository) {
-    super(roleRepository);
+  constructor(
+    private readonly roleRepository: RoleRepository,
+    protected readonly eventEmitter: EventEmitter2,
+  ) {
+    super(roleRepository, eventEmitter);
+  }
+
+  protected getEntityName(): string {
+    return Role.name;
   }
 
   async findByName(name: string, options?: FindOptions): Promise<Role | null> {

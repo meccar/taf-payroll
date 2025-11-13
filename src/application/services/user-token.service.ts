@@ -3,11 +3,19 @@ import { FindOptions, Transaction } from 'sequelize';
 import { UserToken } from '../../domain/entities';
 import { BaseService } from './base.service';
 import { UserTokenRepository } from '../../infrastructure/repositories/user-token.repository';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class UserTokenService extends BaseService<UserToken> {
-  constructor(private readonly userTokenRepository: UserTokenRepository) {
-    super(userTokenRepository);
+  constructor(
+    private readonly userTokenRepository: UserTokenRepository,
+    protected readonly eventEmitter: EventEmitter2,
+  ) {
+    super(userTokenRepository, eventEmitter);
+  }
+
+  protected getEntityName(): string {
+    return UserToken.name;
   }
 
   async getToken(

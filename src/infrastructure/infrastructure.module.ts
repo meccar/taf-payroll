@@ -5,6 +5,7 @@ import authConfig from './auth/auth.config';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import {
+  AuditRepository,
   RoleClaimRepository,
   RoleRepository,
   UserClaimRepository,
@@ -26,6 +27,7 @@ import {
   ],
   providers: [
     UserRepository,
+    AuditRepository,
     RoleRepository,
     UserClaimRepository,
     RoleClaimRepository,
@@ -34,6 +36,7 @@ import {
   ],
   exports: [
     UserRepository,
+    AuditRepository,
     RoleRepository,
     UserClaimRepository,
     RoleClaimRepository,

@@ -1,6 +1,6 @@
 import type { User } from '../../domain/entities';
+import { LoginDto } from '../../shared/dtos/auth/login.dto';
 import type { CreateUserDto } from '../../shared/dtos/user/create-user.dto';
-import type { LoginDto } from '../../shared/dtos/auth/login.dto';
 import { UserResponseDto } from '../../shared/dtos/user/user-response.dto';
 
 export class UserMapper {
@@ -14,9 +14,18 @@ export class UserMapper {
     };
   }
 
-  static toResponse(user: User): UserResponseDto {
+  static toResponse(
+    user: User,
+    confirmationToken?: string | null,
+  ): UserResponseDto {
     const dto = new UserResponseDto();
     dto.id = user.id;
+    dto.username = user.userName;
+    dto.email = user.email;
+    dto.phoneNumber = user.phoneNumber;
+    if (confirmationToken !== undefined) {
+      dto.confirmationToken = confirmationToken;
+    }
     return dto;
   }
 

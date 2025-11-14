@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { BaseResponseDto } from '../dtos/base-response.dto';
+import { BaseResponseDto } from '../../shared/dtos/base-response.dto';
 import { MESSAGES } from '../../shared/messages';
 
 @Injectable()

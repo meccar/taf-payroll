@@ -3,6 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FindOptions, Transaction } from 'sequelize';
 import { UserToken } from '../../domain/entities';
 import { BaseService } from './base.service';
+import { generateEmailConfirmationToken } from 'src/shared/utils';
 
 @Injectable()
 export class UserTokenService extends BaseService<UserToken> {
@@ -40,12 +41,12 @@ export class UserTokenService extends BaseService<UserToken> {
     userId: string,
     loginProvider: string,
     name: string,
-    value: string,
     transaction?: Transaction,
   ): Promise<UserToken> {
+    const token = generateEmailConfirmationToken();
     const existing = await this.getToken(userId, loginProvider, name);
     if (existing) {
-      await existing.update({ value }, { transaction });
+      await existing.update({ value: token }, { transaction });
       return existing;
     }
 
@@ -54,7 +55,7 @@ export class UserTokenService extends BaseService<UserToken> {
         userId,
         loginProvider,
         name,
-        value,
+        token,
       },
       { transaction },
     );

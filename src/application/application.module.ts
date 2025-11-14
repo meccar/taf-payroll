@@ -8,7 +8,9 @@ import {
   UserService,
   UserTokenService,
 } from './services';
-import { UserUseCase } from './use-cases/user.use-case';
+import { EmailListener } from './listeners/email.listener';
+import { CreateUserUseCase } from './usecases/create-user.usecase';
+import { LoginUseCase } from './usecases/login.usecase';
 
 @Module({
   imports: [InfrastructureModule],
@@ -21,8 +23,11 @@ import { UserUseCase } from './use-cases/user.use-case';
     UserLoginService,
     UserTokenService,
     // Use Cases
-    UserUseCase,
+    CreateUserUseCase,
+    LoginUseCase,
+    // Listeners
+    EmailListener,
   ],
-  exports: [UserUseCase],
+  exports: [CreateUserUseCase, LoginUseCase],
 })
 export class ApplicationModule {}

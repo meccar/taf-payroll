@@ -4,7 +4,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectConnection } from '@nestjs/sequelize';
 import { Transaction, WhereOptions } from 'sequelize';
+import { Sequelize } from 'sequelize-typescript';
 import {
   Role,
   User,
@@ -13,6 +15,7 @@ import {
   UserToken,
 } from '../../domain/entities';
 import { BaseService } from './base.service';
+import { CreateResult } from '../../domain/types/service.types';
 import * as bcrypt from 'bcrypt';
 import { SECURITY } from '../../shared/constants/security.constants';
 import { AUTH } from '../../shared/constants/auth.constants';
@@ -30,10 +33,12 @@ const isNonEmptyString = (value: unknown): value is string =>
 @Injectable()
 export class UserService extends BaseService<User> {
   constructor(
+    @InjectConnection()
+    protected readonly sequelize: Sequelize,
     private readonly configService: ConfigService,
     protected readonly eventEmitter: EventEmitter2,
   ) {
-    super(User, eventEmitter);
+    super(User, eventEmitter, sequelize);
   }
 
   protected getEntityName(): string {
@@ -44,7 +49,7 @@ export class UserService extends BaseService<User> {
     return this.findAll();
   }
 
-  async createUser(user: Partial<User>): Promise<User> {
+  async createUser(user: Partial<User>): Promise<CreateResult<User>> {
     if (!user.normalizedEmail && !user.normalizedUserName)
       throw new BadRequestException(AUTH_MESSAGES.EMAIL_OR_USERNAME_REQUIRED);
 
@@ -69,11 +74,12 @@ export class UserService extends BaseService<User> {
     user.securityStamp = generateSecurityStamp();
     user.concurrencyStamp = generateConcurrencyStamp();
 
-    const createdUser = await this.create(user);
-    if (!createdUser)
+    // Create user with transaction
+    const result = await this.createWithTransaction(user);
+    if (!result)
       throw new BadRequestException(AUTH_MESSAGES.FAILED_TO_CREATE_USER);
 
-    return createdUser;
+    return result;
   }
 
   async login(user: Partial<User>): Promise<string> {

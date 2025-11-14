@@ -1,6 +1,6 @@
 import { User } from 'src/domain/entities';
-import { LoginDto } from '../dtos/auth/login.dto';
-import { LoginResponseDto } from '../dtos/auth/login-response.dto';
+import { LoginDto } from '../../shared/dtos/auth/login.dto';
+import { LoginResponseDto } from '../../shared/dtos/auth/login-response.dto';
 
 export class AuthMapper {
   static toEntity(dto: LoginDto): Partial<User> {

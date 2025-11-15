@@ -15,7 +15,6 @@ import {
   UserToken,
 } from '../../domain/entities';
 import { BaseService } from './base.service';
-import { CreateResult } from '../../domain/types/service.types';
 import * as bcrypt from 'bcrypt';
 import { SECURITY } from '../../shared/constants/security.constants';
 import { AUTH } from '../../shared/constants/auth.constants';
@@ -49,13 +48,10 @@ export class UserService extends BaseService<User> {
     return this.findAll();
   }
 
-  async createUser(user: Partial<User>): Promise<CreateResult<User>> {
-    if (!user.normalizedEmail && !user.normalizedUserName)
-      throw new BadRequestException(AUTH_MESSAGES.EMAIL_OR_USERNAME_REQUIRED);
-
-    if (!user.passwordHash)
-      throw new BadRequestException(AUTH_MESSAGES.PASSWORD_REQUIRED);
-
+  async createUser(
+    user: Partial<User>,
+    transaction?: Transaction,
+  ): Promise<User> {
     let existingUser: User | null = null;
 
     if (user.normalizedEmail)
@@ -68,21 +64,21 @@ export class UserService extends BaseService<User> {
       throw new BadRequestException(AUTH_MESSAGES.USER_ALREADY_EXISTS);
 
     user.passwordHash = await bcrypt.hash(
-      user.passwordHash,
+      user.passwordHash!,
       SECURITY.BCRYPT_SALT_ROUNDS,
     );
     user.securityStamp = generateSecurityStamp();
     user.concurrencyStamp = generateConcurrencyStamp();
 
     // Create user with transaction
-    const result = await this.createWithTransaction(user);
+    const result = await this.create(user, undefined, transaction);
     if (!result)
       throw new BadRequestException(AUTH_MESSAGES.FAILED_TO_CREATE_USER);
 
     return result;
   }
 
-  async login(user: Partial<User>): Promise<string> {
+  async login(user: Partial<User>, transaction?: Transaction): Promise<string> {
     if (!user.normalizedEmail && !user.normalizedUserName)
       throw new BadRequestException(AUTH_MESSAGES.EMAIL_OR_USERNAME_REQUIRED);
 
@@ -125,19 +121,25 @@ export class UserService extends BaseService<User> {
       existingUser.accessFailedCount !== 0 ||
       existingUser.lockoutEnd !== null
     ) {
-      existingUser = await existingUser.update({
-        accessFailedCount: 0,
-        lockoutEnd: null,
-      });
+      existingUser = await this.update(
+        existingUser.id,
+        {
+          accessFailedCount: 0,
+          lockoutEnd: undefined,
+        },
+        undefined,
+        transaction,
+      );
     }
 
-    if (user.normalizedEmail && !existingUser.emailConfirmed)
+    if (user.normalizedEmail && !existingUser!.emailConfirmed)
       throw new UnauthorizedException(AUTH_MESSAGES.EMAIL_NOT_CONFIRMED);
 
-    if (!existingUser.twoFactorEnabled)
-      throw new UnauthorizedException(AUTH_MESSAGES.TWO_FACTOR_NOT_ENABLED);
+    // if (!existingUser!.twoFactorEnabled)
+    //   throw new UnauthorizedException(AUTH_MESSAGES.TWO_FACTOR_NOT_ENABLED);
 
-    const payload = await this.buildPasetoPayload(existingUser);
+    const payload = await this.buildPasetoPayload(existingUser!);
+
     return generatePasetoToken(this.configService, payload);
   }
 

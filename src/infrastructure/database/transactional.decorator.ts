@@ -22,6 +22,7 @@ function resolveSequelizeInstance(
   context: Record<string, unknown>,
   connectionPropertyKey?: string,
 ): Sequelize | undefined {
+  // First, try to find Sequelize directly in class properties
   const keysToCheck = connectionPropertyKey
     ? [connectionPropertyKey]
     : DEFAULT_CONNECTION_KEYS;
@@ -33,6 +34,26 @@ function resolveSequelizeInstance(
     if (candidate && typeof (candidate as Sequelize).transaction === 'function')
       return candidate as Sequelize;
   }
+
+  // If not found, try to find Sequelize in injected services
+  // Look for services that might have Sequelize (like BaseService subclasses)
+  for (const key in context) {
+    if (key.startsWith('_')) continue; // Skip private properties
+
+    const candidate = context[key];
+    if (!candidate || typeof candidate !== 'object') continue;
+
+    // Check if this service has a sequelize property
+    const serviceSequelize = (candidate as Record<string, unknown>).sequelize;
+    if (serviceSequelize instanceof Sequelize) return serviceSequelize;
+
+    if (
+      serviceSequelize &&
+      typeof (serviceSequelize as Sequelize).transaction === 'function'
+    )
+      return serviceSequelize as Sequelize;
+  }
+
   return undefined;
 }
 

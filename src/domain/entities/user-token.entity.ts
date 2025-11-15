@@ -4,26 +4,23 @@ import {
   DataType,
   ForeignKey,
   BelongsTo,
-  PrimaryKey,
-  Model,
 } from 'sequelize-typescript';
 import { User } from './user.entity';
+import { BaseEntity } from './base.entity';
 
 @Table({
   tableName: 'user_tokens',
-  timestamps: false,
+  timestamps: true,
+  paranoid: true,
 })
-export class UserToken extends Model {
-  @PrimaryKey
+export class UserToken extends BaseEntity {
   @ForeignKey(() => User)
   @Column({ type: DataType.STRING(26), allowNull: false })
   declare userId: string;
 
-  @PrimaryKey
   @Column({ type: DataType.STRING(128), allowNull: false })
   declare loginProvider: string;
 
-  @PrimaryKey
   @Column({ type: DataType.STRING(128), allowNull: false })
   declare name: string;
 

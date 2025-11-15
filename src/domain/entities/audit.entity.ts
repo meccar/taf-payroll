@@ -19,6 +19,8 @@ export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'SOFT_DELETE';
 
 @Table({
   tableName: 'audits',
+  timestamps: true,
+  paranoid: true,
 })
 export class Audit extends BaseEntity {
   @Column({ field: 'entity_name', type: DataType.STRING(128) })

@@ -14,18 +14,12 @@ export class UserMapper {
     };
   }
 
-  static toResponse(
-    user: User,
-    confirmationToken?: string | null,
-  ): UserResponseDto {
+  static toResponse(user: User): UserResponseDto {
     const dto = new UserResponseDto();
     dto.id = user.id;
     dto.username = user.userName;
     dto.email = user.email;
     dto.phoneNumber = user.phoneNumber;
-    if (confirmationToken !== undefined) {
-      dto.confirmationToken = confirmationToken;
-    }
     return dto;
   }
 

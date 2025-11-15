@@ -4,17 +4,18 @@ import {
   DataType,
   ForeignKey,
   BelongsTo,
-  Model,
   PrimaryKey,
 } from 'sequelize-typescript';
 import { User } from './user.entity';
 import { Role } from './role.entity';
+import { BaseEntity } from './base.entity';
 
 @Table({
   tableName: 'user_roles',
-  timestamps: false,
+  timestamps: true,
+  paranoid: true,
 })
-export class UserRole extends Model {
+export class UserRole extends BaseEntity {
   @PrimaryKey
   @ForeignKey(() => User)
   @Column({ type: DataType.STRING(26), allowNull: false })

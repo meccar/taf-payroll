@@ -20,6 +20,21 @@ services:
     networks:
       - taf-payroll-network
 
+  redis:
+    image: redis:7-alpine
+    container_name: taf-payroll-redis
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - taf-payroll-network
+
   app:
     build:
       context: .
@@ -35,9 +50,13 @@ services:
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       DB_NAME: ${DB_NAME:-taf_payroll}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
       NODE_ENV: ${NODE_ENV:-production}
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - taf-payroll-network
@@ -116,6 +135,7 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
   # vault_data:
   # vault_logs:
   # sonarqube_db_data:

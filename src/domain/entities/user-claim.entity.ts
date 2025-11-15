@@ -4,22 +4,16 @@ import {
   DataType,
   ForeignKey,
   BelongsTo,
-  PrimaryKey,
-  AutoIncrement,
-  Model,
 } from 'sequelize-typescript';
 import { User } from './user.entity';
+import { BaseEntity } from './base.entity';
 
 @Table({
   tableName: 'user_claims',
-  timestamps: false,
+  timestamps: true,
+  paranoid: true,
 })
-export class UserClaim extends Model {
-  @PrimaryKey
-  @AutoIncrement
-  @Column({ type: DataType.INTEGER })
-  declare id: number;
-
+export class UserClaim extends BaseEntity {
   @ForeignKey(() => User)
   @Column({ type: DataType.STRING(26), allowNull: false })
   declare userId: string;

@@ -5,15 +5,16 @@ import {
   ForeignKey,
   BelongsTo,
   PrimaryKey,
-  Model,
 } from 'sequelize-typescript';
 import { User } from './user.entity';
+import { BaseEntity } from './base.entity';
 
 @Table({
   tableName: 'user_logins',
-  timestamps: false,
+  timestamps: true,
+  paranoid: true,
 })
-export class UserLogin extends Model {
+export class UserLogin extends BaseEntity {
   @PrimaryKey
   @Column({ type: DataType.STRING(128) })
   declare loginProvider: string;

@@ -27,10 +27,4 @@ export class UserResponseDto {
     maxLength: 32,
   })
   phoneNumber?: string;
-
-  @ApiPropertyOptional({
-    description: 'Email confirmation token (only returned on user creation)',
-    example: 'a1b2c3d4e5f6...',
-  })
-  confirmationToken?: string | null;
 }

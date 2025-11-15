@@ -15,6 +15,8 @@ import { UserRole } from './user-role.entity';
 
 @Table({
   tableName: 'roles',
+  timestamps: true,
+  paranoid: true,
 })
 export class Role extends BaseEntity {
   @AllowNull(false)

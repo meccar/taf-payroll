@@ -7,10 +7,9 @@ import { ConfigService } from '@nestjs/config';
 import { InjectConnection } from '@nestjs/sequelize';
 import { Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
-import { User, UserLogin } from '../../domain/entities';
+import { User } from '../../domain/entities';
 import { UserService } from './user.service';
 import { UserLoginService } from './user-login.service';
-import { PROVIDER } from '../../shared/constants/provider.constants';
 import {
   ACCEPTED_OAUTH_PROVIDERS,
   AcceptedOAuthProvider,
@@ -84,7 +83,7 @@ export class OAuthService {
     } else {
       // Check if user exists with this email
       const normalizedEmail = email.toUpperCase();
-      let existingUser = await this.userService.findByEmail(normalizedEmail);
+      const existingUser = await this.userService.findByEmail(normalizedEmail);
 
       if (existingUser) {
         // Link OAuth account to existing user

@@ -21,3 +21,13 @@ export interface DeleteResult {
   success: boolean;
   transaction: Transaction;
 }
+
+export interface BulkCreateResult<T> {
+  entities: T[];
+  transaction?: Transaction;
+}
+
+export interface BulkUpdateResult<T> {
+  entities: T[];
+  transaction?: Transaction;
+}

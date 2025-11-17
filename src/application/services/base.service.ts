@@ -17,6 +17,8 @@ import {
   CreateResult,
   UpdateResult,
   DeleteResult,
+  BulkCreateResult,
+  BulkUpdateResult,
 } from 'src/domain/types/service.types';
 
 export abstract class BaseService<T extends Model> {
@@ -30,6 +32,14 @@ export abstract class BaseService<T extends Model> {
 
   protected shouldAudit(): boolean {
     return true;
+  }
+
+  protected ensureSequelizeInstance(): Sequelize {
+    if (!this.sequelize)
+      throw new Error(
+        'Sequelize instance is required for transaction support. Inject Sequelize in the service constructor.',
+      );
+    return this.sequelize;
   }
 
   async findAll(options?: FindOptions): Promise<T[]> {
@@ -86,13 +96,8 @@ export abstract class BaseService<T extends Model> {
     data: Partial<T>,
     context?: AuditContext,
   ): Promise<CreateResult<T> | null> {
-    if (!this.sequelize) {
-      throw new Error(
-        'Sequelize instance is required for transaction support. Inject Sequelize in the service constructor.',
-      );
-    }
-
-    const transaction = await this.sequelize.transaction();
+    const sequelize = this.ensureSequelizeInstance();
+    const transaction = await sequelize.transaction();
 
     try {
       const entity = await this.create(data, context, transaction);
@@ -168,16 +173,10 @@ export abstract class BaseService<T extends Model> {
     data: Partial<T>,
     context?: AuditContext,
   ): Promise<UpdateResult<T> | null> {
-    if (!this.sequelize) {
-      throw new Error(
-        'Sequelize instance is required for transaction support. Inject Sequelize in the service constructor.',
-      );
-    }
-
-    const transaction = await this.sequelize.transaction();
+    const sequelize = this.ensureSequelizeInstance();
+    const transaction = await sequelize.transaction();
 
     try {
-      // Get old entity before update for audit
       const oldEntity = await this.model.findByPk(id, {
         paranoid: true,
         transaction,
@@ -196,7 +195,6 @@ export abstract class BaseService<T extends Model> {
 
       const updatedValue: unknown = entity.toJSON();
 
-      // Emit audit event explicitly
       if (this.shouldAudit()) {
         this.eventEmitter.emit(
           'entity.updated',
@@ -262,13 +260,8 @@ export abstract class BaseService<T extends Model> {
     id: string,
     context?: AuditContext,
   ): Promise<DeleteResult> {
-    if (!this.sequelize) {
-      throw new Error(
-        'Sequelize instance is required for transaction support. Inject Sequelize in the service constructor.',
-      );
-    }
-
-    const transaction = await this.sequelize.transaction();
+    const sequelize = this.ensureSequelizeInstance();
+    const transaction = await sequelize.transaction();
 
     try {
       const entity = await this.model.findByPk(id, {
@@ -336,5 +329,127 @@ export abstract class BaseService<T extends Model> {
       ...options,
       paranoid: options?.paranoid ?? true,
     });
+  }
+
+  async bulkCreate(
+    dataArray: Partial<T>[],
+    context?: AuditContext,
+    transaction?: Transaction,
+  ): Promise<T[]> {
+    if (dataArray.length === 0) return [];
+
+    const entities = await this.model.bulkCreate(
+      dataArray as T['_creationAttributes'][],
+      {
+        transaction,
+        returning: true,
+      },
+    );
+
+    if (this.shouldAudit()) {
+      for (const entity of entities) {
+        this.eventEmitter.emit(
+          'entity.created',
+          new EntityCreatedEvent(
+            this.getEntityName(),
+            entity.getDataValue('id') as string,
+            entity.toJSON(),
+            context?.userId,
+            {
+              ipAddress: context?.ipAddress,
+              requestId: context?.requestId,
+              ...context?.metadata,
+            },
+          ),
+        );
+      }
+    }
+
+    return entities;
+  }
+
+  async bulkCreateWithTransaction(
+    dataArray: Partial<T>[],
+    context?: AuditContext,
+  ): Promise<BulkCreateResult<T>> {
+    const sequelize = this.ensureSequelizeInstance();
+    const transaction = await sequelize.transaction();
+
+    try {
+      const entities = await this.bulkCreate(dataArray, context, transaction);
+
+      return {
+        entities,
+        transaction,
+      };
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
+  }
+
+  async bulkUpdate(
+    updates: Array<{ id: string; data: Partial<T> }>,
+    context?: AuditContext,
+    transaction?: Transaction,
+  ): Promise<T[]> {
+    if (updates.length === 0) return [];
+
+    const updatedEntities: T[] = [];
+
+    for (const { id, data } of updates) {
+      const oldEntity = await this.model.findByPk(id, {
+        paranoid: true,
+        transaction,
+      });
+
+      if (!oldEntity) continue;
+
+      const oldValue: unknown = oldEntity.toJSON();
+      const updatedEntity = await oldEntity.update(data, { transaction });
+      const updatedValue: unknown = updatedEntity.toJSON();
+
+      if (this.shouldAudit()) {
+        this.eventEmitter.emit(
+          'entity.updated',
+          new EntityUpdatedEvent(
+            this.getEntityName(),
+            id,
+            oldValue as Record<string, unknown>,
+            updatedValue as Record<string, unknown>,
+            context?.userId,
+            {
+              ipAddress: context?.ipAddress,
+              requestId: context?.requestId,
+              ...context?.metadata,
+            },
+          ),
+        );
+      }
+
+      updatedEntities.push(updatedEntity);
+    }
+
+    return updatedEntities;
+  }
+
+  async bulkUpdateWithTransaction(
+    updates: Array<{ id: string; data: Partial<T> }>,
+    context?: AuditContext,
+  ): Promise<BulkUpdateResult<T>> {
+    const sequelize = this.ensureSequelizeInstance();
+    const transaction = await sequelize.transaction();
+
+    try {
+      const entities = await this.bulkUpdate(updates, context, transaction);
+
+      return {
+        entities,
+        transaction,
+      };
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 }

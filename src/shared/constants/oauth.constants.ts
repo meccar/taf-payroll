@@ -1,0 +1,13 @@
+import { PROVIDER } from './provider.constants';
+
+export const OAUTH_PROVIDERS = {
+  GOOGLE: PROVIDER.GOOGLE,
+  FACEBOOK: PROVIDER.FACEBOOK,
+  APPLE: PROVIDER.APPLE,
+  MICROSOFT: PROVIDER.MICROSOFT,
+  GITHUB: PROVIDER.GITHUB,
+} as const;
+
+export const ACCEPTED_OAUTH_PROVIDERS = [OAUTH_PROVIDERS.GOOGLE] as const;
+
+export type AcceptedOAuthProvider = (typeof ACCEPTED_OAUTH_PROVIDERS)[number];

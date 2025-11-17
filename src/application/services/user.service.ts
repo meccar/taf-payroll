@@ -231,9 +231,7 @@ export class UserService extends BaseService<User> {
     return user;
   }
 
-  private async buildPasetoPayload(
-    user: User,
-  ): Promise<Record<string, unknown>> {
+  async buildPasetoPayload(user: User): Promise<Record<string, unknown>> {
     const [roles, claims] = await Promise.all([
       this.getRoles(user.id),
       this.getClaims(user.id),

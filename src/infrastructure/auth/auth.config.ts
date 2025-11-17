@@ -1,4 +1,5 @@
 import { registerAs } from '@nestjs/config';
+import { OAUTH_PROVIDERS } from 'src/shared/constants';
 
 export interface PasetoConfig {
   publicKey: string;
@@ -8,8 +9,16 @@ export interface PasetoConfig {
   clockTolerance?: string | number;
 }
 
+export interface OAuthConfig {
+  provider?: string;
+  clientID: string;
+  clientSecret: string;
+  callbackURL?: string;
+}
+
 export interface AuthConfig {
   paseto: PasetoConfig;
+  oauth?: OAuthConfig;
 }
 
 const parseAudience = (rawAudience?: string): string | string[] | undefined => {
@@ -30,5 +39,11 @@ export default registerAs<AuthConfig>('auth', () => ({
     audience: parseAudience(process.env.PASETO_AUDIENCE),
     issuer: process.env.PASETO_ISSUER,
     clockTolerance: process.env.PASETO_CLOCK_TOLERANCE,
+  },
+  oauth: {
+    provider: process.env.OAUTH_PROVIDER || OAUTH_PROVIDERS.GOOGLE,
+    clientID: process.env.OAUTH_CLIENT_ID ?? '',
+    clientSecret: process.env.OAUTH_CLIENT_SECRET ?? '',
+    callbackURL: process.env.OAUTH_CALLBACK_URL,
   },
 }));

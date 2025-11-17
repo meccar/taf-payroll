@@ -5,3 +5,4 @@ export * from './user-claim.service';
 export * from './role-claim.service';
 export * from './user-login.service';
 export * from './user-token.service';
+export * from './oauth.service';

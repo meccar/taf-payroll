@@ -42,6 +42,40 @@ export class OAuthService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
+  validateProvider(provider: AcceptedOAuthProvider): void {
+    if (!ACCEPTED_OAUTH_PROVIDERS.includes(provider)) {
+      throw new BadRequestException(
+        `OAuth provider "${provider}" is not accepted. Accepted providers: ${ACCEPTED_OAUTH_PROVIDERS.join(', ')}`,
+      );
+    }
+  }
+
+  getCallbackRedirectUrl(token: string): string {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? '';
+    return `${frontendUrl}/auth/callback?token=${token}`;
+  }
+
+  getCallbackErrorRedirectUrl(error: Error | string): string {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? '';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Authentication failed';
+    return `${frontendUrl}/auth/callback?error=${encodeURIComponent(errorMessage)}`;
+  }
+
+  async processCallback(
+    oauthUser: OAuthUser | null,
+    provider: AcceptedOAuthProvider,
+    transaction?: Transaction,
+  ): Promise<string> {
+    this.validateProvider(provider);
+
+    if (!oauthUser) {
+      throw new BadRequestException('OAuth authentication failed');
+    }
+
+    return await this.authenticate(oauthUser, transaction);
+  }
+
   async authenticate(
     oauthUser: OAuthUser,
     transaction?: Transaction,
@@ -56,11 +90,7 @@ export class OAuthService {
     }
 
     // Validate provider is accepted
-    if (!ACCEPTED_OAUTH_PROVIDERS.includes(provider)) {
-      throw new BadRequestException(
-        `OAuth provider "${provider}" is not accepted. Accepted providers: ${ACCEPTED_OAUTH_PROVIDERS.join(', ')}`,
-      );
-    }
+    this.validateProvider(provider);
 
     // Check if user already has this OAuth login
     const existingLogin = await this.userLoginService.findByLogin(

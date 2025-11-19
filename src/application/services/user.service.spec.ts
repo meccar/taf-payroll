@@ -16,6 +16,8 @@ import {
 } from '../../domain/entities';
 import { AUTH_MESSAGES } from '../../shared/messages/auth.messages';
 import { generatePasetoToken } from '../../shared/utils/paseto.util';
+import { CreateResult, UpdateResult } from 'src/domain/types';
+import { UserTokenService } from './user-token.service';
 
 // Mock dependencies
 jest.mock('bcrypt');
@@ -69,9 +71,17 @@ describe('UserService', () => {
 
     const mockEventEmitter = {
       emit: jest.fn(),
+      emitAsync: jest.fn(),
     };
 
     const mockSequelize = {} as Sequelize;
+
+    // Mock UserTokenService
+    const mockUserTokenService = {
+      setToken: jest.fn(),
+      getToken: jest.fn(),
+      removeToken: jest.fn(),
+    } as unknown as jest.Mocked<UserTokenService>;
 
     // Mock BaseService methods
     baseService = {
@@ -96,6 +106,10 @@ describe('UserService', () => {
         {
           provide: Sequelize,
           useValue: mockSequelize,
+        },
+        {
+          provide: UserTokenService,
+          useValue: mockUserTokenService,
         },
       ],
     }).compile();
@@ -159,11 +173,16 @@ describe('UserService', () => {
       baseService.findOne.mockResolvedValue(null);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
       const createdUser = { ...newUser, id: 'new-user-id' } as User;
-      baseService.create.mockResolvedValue(createdUser);
+      const mockTransaction = {} as Transaction;
+      baseService.create.mockResolvedValue({
+        entity: createdUser,
+        transaction: mockTransaction,
+      } as CreateResult<User>);
 
       const result = await service.createUser(newUser);
 
-      expect(result).toEqual(createdUser);
+      expect(result.entity).toEqual(createdUser);
+      expect(result.transaction).toBe(mockTransaction);
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(baseService.findOne).toHaveBeenCalledTimes(2); // findByEmail and findByUserName
       expect(bcrypt.hash).toHaveBeenCalledWith('plain-password', 10);
@@ -208,7 +227,11 @@ describe('UserService', () => {
       baseService.findOne.mockResolvedValue(null);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
       const createdUser = { ...userWithoutEmail, id: 'new-user-id' } as User;
-      baseService.create.mockResolvedValue(createdUser);
+      const mockTransaction = {} as Transaction;
+      baseService.create.mockResolvedValue({
+        entity: createdUser,
+        transaction: mockTransaction,
+      } as CreateResult<User>);
 
       await service.createUser(userWithoutEmail);
 
@@ -238,7 +261,11 @@ describe('UserService', () => {
       baseService.findOne.mockResolvedValue(null);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
       const createdUser = { ...newUser, id: 'new-user-id' } as User;
-      baseService.create.mockResolvedValue(createdUser);
+      const mockTransaction = {} as Transaction;
+      baseService.create.mockResolvedValue({
+        entity: createdUser,
+        transaction: mockTransaction,
+      } as CreateResult<User>);
 
       await service.createUser(newUser, transaction);
 
@@ -266,7 +293,11 @@ describe('UserService', () => {
       } as User;
       baseService.findOne.mockResolvedValue(existingUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      baseService.update.mockResolvedValue(existingUser);
+      const mockTransaction = {} as Transaction;
+      baseService.update.mockResolvedValue({
+        entity: existingUser,
+        transaction: mockTransaction,
+      } as UpdateResult<User>);
       baseService.findById
         .mockResolvedValueOnce({
           ...existingUser,
@@ -303,7 +334,11 @@ describe('UserService', () => {
       // When using username, findByEmail is not called, only findByUserName
       baseService.findOne.mockResolvedValueOnce(existingUser); // findByUserName returns user
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      baseService.update.mockResolvedValue(existingUser);
+      const mockTransaction = {} as Transaction;
+      baseService.update.mockResolvedValue({
+        entity: existingUser,
+        transaction: mockTransaction,
+      } as UpdateResult<User>);
       baseService.findById
         .mockResolvedValueOnce({
           ...existingUser,
@@ -370,7 +405,11 @@ describe('UserService', () => {
       } as User;
       baseService.findOne.mockResolvedValue(expiredLockoutUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      baseService.update.mockResolvedValue(expiredLockoutUser);
+      const mockTransaction = {} as Transaction;
+      baseService.update.mockResolvedValue({
+        entity: expiredLockoutUser,
+        transaction: mockTransaction,
+      } as UpdateResult<User>);
       baseService.findById
         .mockResolvedValueOnce({
           ...expiredLockoutUser,
@@ -419,7 +458,11 @@ describe('UserService', () => {
         accessFailedCount: 0,
         lockoutEnd: undefined,
       } as User;
-      baseService.update.mockResolvedValue(resetUser);
+      const mockTransaction = {} as Transaction;
+      baseService.update.mockResolvedValue({
+        entity: resetUser,
+        transaction: mockTransaction,
+      } as UpdateResult<User>);
       baseService.findById
         .mockResolvedValueOnce({ ...resetUser, roles: [] } as unknown as User)
         .mockResolvedValueOnce({ ...resetUser, claims: [] } as unknown as User);
@@ -449,7 +492,11 @@ describe('UserService', () => {
       } as User;
       baseService.findOne.mockResolvedValue(unconfirmedUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      baseService.update.mockResolvedValue(unconfirmedUser);
+      const mockTransaction = {} as Transaction;
+      baseService.update.mockResolvedValue({
+        entity: unconfirmedUser,
+        transaction: mockTransaction,
+      } as UpdateResult<User>);
 
       await expect(service.login(loginUser)).rejects.toThrow(
         UnauthorizedException,
@@ -469,7 +516,11 @@ describe('UserService', () => {
       } as User;
       baseService.findOne.mockResolvedValue(existingUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      baseService.update.mockResolvedValue(existingUser);
+      const mockTransaction = {} as Transaction;
+      baseService.update.mockResolvedValue({
+        entity: existingUser,
+        transaction: mockTransaction,
+      } as UpdateResult<User>);
       baseService.findById
         .mockResolvedValueOnce({
           ...existingUser,

@@ -25,6 +25,8 @@ import {
 import { generatePasetoToken } from '../../shared/utils/paseto.util';
 import { AUTH_MESSAGES } from '../../shared/messages/auth.messages';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CreateResult, UpdateResult } from 'src/domain/types';
+import { UserTokenService } from './user-token.service';
 
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === 'string' && value.length > 0;
@@ -36,6 +38,7 @@ export class UserService extends BaseService<User> {
     protected readonly sequelize: Sequelize,
     private readonly configService: ConfigService,
     protected readonly eventEmitter: EventEmitter2,
+    private readonly userTokenService: UserTokenService,
   ) {
     super(User, eventEmitter, sequelize);
   }
@@ -51,7 +54,7 @@ export class UserService extends BaseService<User> {
   async createUser(
     user: Partial<User>,
     transaction?: Transaction,
-  ): Promise<User> {
+  ): Promise<CreateResult<User>> {
     let existingUser: User | null = null;
 
     if (user.normalizedEmail)
@@ -121,7 +124,7 @@ export class UserService extends BaseService<User> {
       existingUser.accessFailedCount !== 0 ||
       existingUser.lockoutEnd !== null
     ) {
-      existingUser = await this.update(
+      const result = await this.update(
         existingUser.id,
         {
           accessFailedCount: 0,
@@ -130,15 +133,18 @@ export class UserService extends BaseService<User> {
         undefined,
         transaction,
       );
+
+      if (!result || !result.entity)
+        throw new BadRequestException(AUTH_MESSAGES.FAILED_TO_LOGIN);
     }
 
-    if (user.normalizedEmail && !existingUser!.emailConfirmed)
+    if (user.normalizedEmail && !existingUser.emailConfirmed)
       throw new UnauthorizedException(AUTH_MESSAGES.EMAIL_NOT_CONFIRMED);
 
     // if (!existingUser!.twoFactorEnabled)
     //   throw new UnauthorizedException(AUTH_MESSAGES.TWO_FACTOR_NOT_ENABLED);
 
-    const payload = await this.buildPasetoPayload(existingUser!);
+    const payload = await this.buildPasetoPayload(existingUser);
 
     return generatePasetoToken(this.configService, payload);
   }
@@ -254,5 +260,179 @@ export class UserService extends BaseService<User> {
     if (policyClaims.length > 0) payload.policies = policyClaims;
 
     return payload;
+  }
+
+  async requestPasswordReset(
+    email: string,
+    transaction?: Transaction,
+  ): Promise<CreateResult<UserToken>> {
+    const user = await this.findByEmail(email);
+    if (!user) {
+      throw new BadRequestException(AUTH_MESSAGES.USER_NOT_FOUND);
+    }
+
+    return await this.userTokenService.setToken(
+      user.id,
+      'email',
+      'passwordResetToken',
+      transaction,
+    );
+  }
+
+  async resetPassword(
+    token: string,
+    newPassword: string,
+    transaction?: Transaction,
+  ): Promise<UpdateResult<User>> {
+    const tokenRecord = await UserToken.findOne({
+      where: {
+        loginProvider: 'email',
+        name: 'passwordResetToken',
+        value: token,
+      },
+      transaction,
+    });
+
+    if (!tokenRecord) {
+      throw new BadRequestException(AUTH_MESSAGES.INVALID_TOKEN);
+    }
+
+    const user = await this.findById(tokenRecord.userId);
+    if (!user) {
+      throw new BadRequestException(AUTH_MESSAGES.USER_NOT_FOUND);
+    }
+
+    const passwordHash = await bcrypt.hash(
+      newPassword,
+      SECURITY.BCRYPT_SALT_ROUNDS,
+    );
+
+    const result = await this.update(
+      user.id,
+      {
+        passwordHash,
+        securityStamp: generateSecurityStamp(),
+      },
+      undefined,
+      transaction,
+    );
+
+    if (!result) {
+      throw new BadRequestException(AUTH_MESSAGES.FAILED_TO_LOGIN);
+    }
+
+    await this.userTokenService.removeToken(
+      user.id,
+      'email',
+      'passwordResetToken',
+      transaction,
+    );
+
+    return result;
+  }
+
+  async confirmEmail(
+    token: string,
+    transaction?: Transaction,
+  ): Promise<UpdateResult<User>> {
+    const tokenRecord = await UserToken.findOne({
+      where: {
+        loginProvider: 'email',
+        name: 'confirmationToken',
+        value: token,
+      },
+      transaction,
+    });
+
+    if (!tokenRecord) {
+      throw new BadRequestException(AUTH_MESSAGES.INVALID_TOKEN);
+    }
+
+    const user = await this.findById(tokenRecord.userId);
+    if (!user) {
+      throw new BadRequestException(AUTH_MESSAGES.USER_NOT_FOUND);
+    }
+
+    if (user.emailConfirmed) {
+      throw new BadRequestException(AUTH_MESSAGES.EMAIL_ALREADY_CONFIRMED);
+    }
+
+    const result = await this.update(
+      user.id,
+      { emailConfirmed: true },
+      undefined,
+      transaction,
+    );
+
+    if (!result) {
+      throw new BadRequestException(AUTH_MESSAGES.FAILED_TO_LOGIN);
+    }
+
+    await this.userTokenService.removeToken(
+      user.id,
+      'email',
+      'confirmationToken',
+      transaction,
+    );
+
+    return result;
+  }
+
+  async resendEmailConfirmation(
+    email: string,
+    transaction?: Transaction,
+  ): Promise<CreateResult<UserToken>> {
+    const user = await this.findByEmail(email);
+    if (!user) {
+      throw new BadRequestException(AUTH_MESSAGES.USER_NOT_FOUND);
+    }
+
+    if (user.emailConfirmed) {
+      throw new BadRequestException(AUTH_MESSAGES.EMAIL_ALREADY_CONFIRMED);
+    }
+
+    return await this.userTokenService.setToken(
+      user.id,
+      'email',
+      'confirmationToken',
+      transaction,
+    );
+  }
+
+  async verify2FA(
+    userId: string,
+    code: string,
+    transaction?: Transaction,
+  ): Promise<boolean> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new BadRequestException(AUTH_MESSAGES.USER_NOT_FOUND);
+    }
+
+    if (!user.twoFactorEnabled) {
+      throw new BadRequestException(AUTH_MESSAGES.TWO_FACTOR_NOT_ENABLED);
+    }
+
+    // TODO: Implement actual 2FA verification logic (TOTP, SMS, etc.)
+    // For now, this is a placeholder
+    // You would typically verify against a stored secret or send SMS code
+    const tokenRecord = await this.userTokenService.getToken(
+      userId,
+      '2fa',
+      'verificationCode',
+    );
+
+    if (!tokenRecord || tokenRecord.value !== code) {
+      throw new BadRequestException(AUTH_MESSAGES.INVALID_2FA_CODE);
+    }
+
+    await this.userTokenService.removeToken(
+      userId,
+      '2fa',
+      'verificationCode',
+      transaction,
+    );
+
+    return true;
   }
 }

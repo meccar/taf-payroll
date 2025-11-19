@@ -14,11 +14,11 @@ import {
 } from 'src/domain/events/entity.events';
 import {
   AuditContext,
-  CreateResult,
-  UpdateResult,
-  DeleteResult,
   BulkCreateResult,
   BulkUpdateResult,
+  CreateResult,
+  DeleteResult,
+  UpdateResult,
 } from 'src/domain/types/service.types';
 
 export abstract class BaseService<T extends Model> {
@@ -67,14 +67,14 @@ export abstract class BaseService<T extends Model> {
     data: Partial<T>,
     context?: AuditContext,
     transaction?: Transaction,
-  ): Promise<T | null> {
+  ): Promise<CreateResult<T> | null> {
     const entity = await this.model.create(data as T['_creationAttributes'], {
       transaction,
     });
     if (!entity) return null;
 
     if (this.shouldAudit())
-      this.eventEmitter.emit(
+      await this.eventEmitter.emitAsync(
         'entity.created',
         new EntityCreatedEvent(
           this.getEntityName(),
@@ -86,50 +86,14 @@ export abstract class BaseService<T extends Model> {
             requestId: context?.requestId,
             ...context?.metadata,
           },
+          transaction,
         ),
       );
 
-    return entity;
-  }
-
-  async createWithTransaction(
-    data: Partial<T>,
-    context?: AuditContext,
-  ): Promise<CreateResult<T> | null> {
-    const sequelize = this.ensureSequelizeInstance();
-    const transaction = await sequelize.transaction();
-
-    try {
-      const entity = await this.create(data, context, transaction);
-      if (!entity) {
-        await transaction.rollback();
-        return null;
-      }
-
-      if (this.shouldAudit())
-        this.eventEmitter.emit(
-          'entity.created',
-          new EntityCreatedEvent(
-            this.getEntityName(),
-            entity.getDataValue('id') as string,
-            entity.toJSON(),
-            context?.userId,
-            {
-              ipAddress: context?.ipAddress,
-              requestId: context?.requestId,
-              ...context?.metadata,
-            },
-          ),
-        );
-
-      return {
-        entity,
-        transaction,
-      };
-    } catch (error) {
-      await transaction.rollback();
-      throw error;
-    }
+    return {
+      entity,
+      transaction,
+    };
   }
 
   async update(
@@ -137,7 +101,7 @@ export abstract class BaseService<T extends Model> {
     data: Partial<T>,
     context?: AuditContext,
     transaction?: Transaction,
-  ): Promise<T | null> {
+  ): Promise<UpdateResult<T> | null> {
     const oldEntity = await this.model.findByPk(id, {
       paranoid: true,
       transaction,
@@ -149,7 +113,7 @@ export abstract class BaseService<T extends Model> {
     const updatedValue: unknown = updatedEntity.toJSON();
 
     if (this.shouldAudit())
-      this.eventEmitter.emit(
+      await this.eventEmitter.emitAsync(
         'entity.updated',
         new EntityUpdatedEvent(
           this.getEntityName(),
@@ -162,83 +126,32 @@ export abstract class BaseService<T extends Model> {
             requestId: context?.requestId,
             ...context?.metadata,
           },
+          transaction,
         ),
       );
 
-    return updatedEntity;
-  }
-
-  async updateWithTransaction(
-    id: string,
-    data: Partial<T>,
-    context?: AuditContext,
-  ): Promise<UpdateResult<T> | null> {
-    const sequelize = this.ensureSequelizeInstance();
-    const transaction = await sequelize.transaction();
-
-    try {
-      const oldEntity = await this.model.findByPk(id, {
-        paranoid: true,
-        transaction,
-      });
-      if (!oldEntity) {
-        await transaction.rollback();
-        return null;
-      }
-
-      const oldValue: unknown = oldEntity.toJSON();
-      const entity = await this.update(id, data, context, transaction);
-      if (!entity) {
-        await transaction.rollback();
-        return null;
-      }
-
-      const updatedValue: unknown = entity.toJSON();
-
-      if (this.shouldAudit()) {
-        this.eventEmitter.emit(
-          'entity.updated',
-          new EntityUpdatedEvent(
-            this.getEntityName(),
-            id,
-            oldValue as Record<string, unknown>,
-            updatedValue as Record<string, unknown>,
-            context?.userId,
-            {
-              ipAddress: context?.ipAddress,
-              requestId: context?.requestId,
-              ...context?.metadata,
-            },
-          ),
-        );
-      }
-
-      return {
-        entity,
-        transaction,
-      };
-    } catch (error) {
-      await transaction.rollback();
-      throw error;
-    }
+    return {
+      entity: updatedEntity,
+      transaction,
+    };
   }
 
   async delete(
     id: string,
     context?: AuditContext,
     transaction?: Transaction,
-  ): Promise<boolean> {
+  ): Promise<DeleteResult> {
     const entity = await this.model.findByPk(id, {
       paranoid: true,
       transaction,
     });
-    if (!entity) return false;
+    if (!entity) return { success: false, transaction };
 
     const oldValue: unknown = entity.toJSON();
     await entity.destroy({ transaction, force: false });
 
     if (this.shouldAudit())
-      this.eventEmitter.emit(
+      await this.eventEmitter.emitAsync(
         'entity.deleted',
         new EntityDeletedEvent(
           this.getEntityName(),
@@ -250,60 +163,11 @@ export abstract class BaseService<T extends Model> {
             requestId: context?.requestId,
             ...context?.metadata,
           },
+          transaction,
         ),
       );
 
-    return true;
-  }
-
-  async deleteWithTransaction(
-    id: string,
-    context?: AuditContext,
-  ): Promise<DeleteResult> {
-    const sequelize = this.ensureSequelizeInstance();
-    const transaction = await sequelize.transaction();
-
-    try {
-      const entity = await this.model.findByPk(id, {
-        paranoid: true,
-        transaction,
-      });
-      if (!entity) {
-        await transaction.rollback();
-        return {
-          success: false,
-          transaction,
-        };
-      }
-
-      const oldValue: unknown = entity.toJSON();
-      await entity.destroy({ transaction, force: false });
-
-      if (this.shouldAudit()) {
-        this.eventEmitter.emit(
-          'entity.deleted',
-          new EntityDeletedEvent(
-            this.getEntityName(),
-            id,
-            oldValue as Record<string, unknown>,
-            context?.userId,
-            {
-              ipAddress: context?.ipAddress,
-              requestId: context?.requestId,
-              ...context?.metadata,
-            },
-          ),
-        );
-      }
-
-      return {
-        success: true,
-        transaction,
-      };
-    } catch (error) {
-      await transaction.rollback();
-      throw error;
-    }
+    return { success: true, transaction };
   }
 
   async count(options?: FindOptions): Promise<number> {
@@ -335,8 +199,8 @@ export abstract class BaseService<T extends Model> {
     dataArray: Partial<T>[],
     context?: AuditContext,
     transaction?: Transaction,
-  ): Promise<T[]> {
-    if (dataArray.length === 0) return [];
+  ): Promise<BulkCreateResult<T>> {
+    if (dataArray.length === 0) return { entities: [], transaction };
 
     const entities = await this.model.bulkCreate(
       dataArray as T['_creationAttributes'][],
@@ -346,9 +210,9 @@ export abstract class BaseService<T extends Model> {
       },
     );
 
-    if (this.shouldAudit()) {
+    if (this.shouldAudit())
       for (const entity of entities) {
-        this.eventEmitter.emit(
+        await this.eventEmitter.emitAsync(
           'entity.created',
           new EntityCreatedEvent(
             this.getEntityName(),
@@ -360,40 +224,20 @@ export abstract class BaseService<T extends Model> {
               requestId: context?.requestId,
               ...context?.metadata,
             },
+            transaction,
           ),
         );
       }
-    }
 
-    return entities;
-  }
-
-  async bulkCreateWithTransaction(
-    dataArray: Partial<T>[],
-    context?: AuditContext,
-  ): Promise<BulkCreateResult<T>> {
-    const sequelize = this.ensureSequelizeInstance();
-    const transaction = await sequelize.transaction();
-
-    try {
-      const entities = await this.bulkCreate(dataArray, context, transaction);
-
-      return {
-        entities,
-        transaction,
-      };
-    } catch (error) {
-      await transaction.rollback();
-      throw error;
-    }
+    return { entities, transaction };
   }
 
   async bulkUpdate(
     updates: Array<{ id: string; data: Partial<T> }>,
     context?: AuditContext,
     transaction?: Transaction,
-  ): Promise<T[]> {
-    if (updates.length === 0) return [];
+  ): Promise<BulkUpdateResult<T>> {
+    if (updates.length === 0) return { entities: [], transaction };
 
     const updatedEntities: T[] = [];
 
@@ -409,8 +253,8 @@ export abstract class BaseService<T extends Model> {
       const updatedEntity = await oldEntity.update(data, { transaction });
       const updatedValue: unknown = updatedEntity.toJSON();
 
-      if (this.shouldAudit()) {
-        this.eventEmitter.emit(
+      if (this.shouldAudit())
+        await this.eventEmitter.emitAsync(
           'entity.updated',
           new EntityUpdatedEvent(
             this.getEntityName(),
@@ -423,33 +267,13 @@ export abstract class BaseService<T extends Model> {
               requestId: context?.requestId,
               ...context?.metadata,
             },
+            transaction,
           ),
         );
-      }
 
       updatedEntities.push(updatedEntity);
     }
 
-    return updatedEntities;
-  }
-
-  async bulkUpdateWithTransaction(
-    updates: Array<{ id: string; data: Partial<T> }>,
-    context?: AuditContext,
-  ): Promise<BulkUpdateResult<T>> {
-    const sequelize = this.ensureSequelizeInstance();
-    const transaction = await sequelize.transaction();
-
-    try {
-      const entities = await this.bulkUpdate(updates, context, transaction);
-
-      return {
-        entities,
-        transaction,
-      };
-    } catch (error) {
-      await transaction.rollback();
-      throw error;
-    }
+    return { entities: updatedEntities, transaction };
   }
 }

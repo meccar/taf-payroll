@@ -9,17 +9,17 @@ export interface AuditContext {
 
 export interface CreateResult<T> {
   entity: T;
-  transaction: Transaction;
+  transaction?: Transaction;
 }
 
 export interface UpdateResult<T> {
   entity: T;
-  transaction: Transaction;
+  transaction?: Transaction;
 }
 
 export interface DeleteResult {
   success: boolean;
-  transaction: Transaction;
+  transaction?: Transaction;
 }
 
 export interface BulkCreateResult<T> {

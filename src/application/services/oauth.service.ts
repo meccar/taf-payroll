@@ -130,7 +130,7 @@ export class OAuthService {
         const userName = email.split('@')[0];
         const normalizedUserName = userName.toUpperCase();
 
-        user = await this.userService.createUser(
+        const createResult = await this.userService.createUser(
           {
             email,
             normalizedEmail,
@@ -142,6 +142,10 @@ export class OAuthService {
           },
           transaction,
         );
+        if (!createResult)
+          throw new BadRequestException(AUTH_MESSAGES.FAILED_TO_CREATE_USER);
+
+        user = createResult.entity;
 
         // Add OAuth login
         await this.userLoginService.addLogin(

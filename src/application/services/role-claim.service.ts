@@ -36,10 +36,11 @@ export class RoleClaimService extends BaseService<RoleClaim> {
       transaction,
     );
     if (!result) throw new BadRequestException('Failed to add claim to role');
-    return result;
+    return result.entity;
   }
 
   async removeClaims(id: string, transaction?: Transaction): Promise<boolean> {
-    return this.delete(id, undefined, transaction);
+    const result = await this.delete(id, undefined, transaction);
+    return result.success;
   }
 }

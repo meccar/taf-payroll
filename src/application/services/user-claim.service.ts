@@ -44,7 +44,8 @@ export class UserClaimService extends BaseService<UserClaim> {
     claimId: number,
     transaction?: Transaction,
   ): Promise<boolean> {
-    return this.delete(String(claimId), undefined, transaction);
+    const result = await this.delete(String(claimId), undefined, transaction);
+    return result.success;
   }
 
   async removeClaims(

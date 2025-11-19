@@ -27,17 +27,21 @@ export class CreateUserUseCase {
     );
 
     const token = await this.userTokenService.setToken(
-      result.id,
+      result.entity.id,
       'email',
       'confirmationToken',
-      transaction,
+      result.transaction,
     );
 
     this.eventEmitter.emit(
       'user.created',
-      new UserCreatedEvent(result.id, result.email || '', token.value || ''),
+      new UserCreatedEvent(
+        result.entity.id,
+        result.entity.email || '',
+        token.entity.value || '',
+      ),
     );
 
-    return UserMapper.toResponse(result);
+    return UserMapper.toResponse(result.entity);
   }
 }

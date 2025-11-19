@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FindOptions, Transaction } from 'sequelize';
 import { UserToken } from '../../domain/entities';
 import { BaseService } from './base.service';
 import { generateEmailConfirmationToken } from 'src/shared/utils';
+import { CreateResult } from 'src/domain/types';
+import { AUTH_MESSAGES } from 'src/shared/messages';
 
 @Injectable()
 export class UserTokenService extends BaseService<UserToken> {
@@ -42,23 +44,29 @@ export class UserTokenService extends BaseService<UserToken> {
     loginProvider: string,
     name: string,
     transaction?: Transaction,
-  ): Promise<UserToken> {
+  ): Promise<CreateResult<UserToken>> {
     const token = generateEmailConfirmationToken();
     const existing = await this.getToken(userId, loginProvider, name);
     if (existing) {
       await existing.update({ value: token }, { transaction });
-      return existing;
+      return { entity: existing, transaction };
     }
 
-    return UserToken.create(
+    const result = await this.create(
       {
         userId,
         loginProvider,
         name,
-        token,
+        value: token,
       },
-      { transaction },
+      undefined,
+      transaction,
     );
+
+    if (!result)
+      throw new BadRequestException(AUTH_MESSAGES.FAILED_TO_CREATE_USER);
+
+    return result;
   }
 
   async removeToken(

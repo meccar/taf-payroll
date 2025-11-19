@@ -12,3 +12,7 @@ export function generateSecurityStamp(): string {
 export function generateEmailConfirmationToken(): string {
   return crypto.randomBytes(32).toString('hex');
 }
+
+export function generatePasswordResetToken(): string {
+  return crypto.randomBytes(32).toString('hex');
+}

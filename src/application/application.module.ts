@@ -12,6 +12,11 @@ import {
 import { EmailListener } from './listeners/email.listener';
 import { CreateUserUseCase } from './usecases/create-user.usecase';
 import { LoginUseCase } from './usecases/login.usecase';
+import { ForgotPasswordUseCase } from './usecases/forgot-password.usecase';
+import { ResetPasswordUseCase } from './usecases/reset-password.usecase';
+import { ConfirmEmailUseCase } from './usecases/confirm-email.usecase';
+import { ResendConfirmationUseCase } from './usecases/resend-confirmation.usecase';
+import { Verify2FAUseCase } from './usecases/verify-2fa.usecase';
 import { OAuthUseCase } from './usecases/oauth.usecase';
 
 @Module({
@@ -29,9 +34,23 @@ import { OAuthUseCase } from './usecases/oauth.usecase';
     CreateUserUseCase,
     LoginUseCase,
     OAuthUseCase,
+    ForgotPasswordUseCase,
+    ResetPasswordUseCase,
+    ConfirmEmailUseCase,
+    ResendConfirmationUseCase,
+    Verify2FAUseCase,
     // Listeners
     EmailListener,
   ],
-  exports: [CreateUserUseCase, LoginUseCase, OAuthUseCase],
+  exports: [
+    CreateUserUseCase,
+    LoginUseCase,
+    OAuthUseCase,
+    ForgotPasswordUseCase,
+    ResetPasswordUseCase,
+    ConfirmEmailUseCase,
+    ResendConfirmationUseCase,
+    Verify2FAUseCase,
+  ],
 })
 export class ApplicationModule {}

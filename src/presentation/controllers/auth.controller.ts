@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request, Response } from 'express';
+import { CurrentUser } from '../decorators';
 import * as oauthConstants from '../../shared/constants/oauth.constants';
 import { LoginDto } from '../../shared/dtos/auth/login.dto';
 import { LoginResponseDto } from '../../shared/dtos/auth/login-response.dto';
@@ -30,6 +31,7 @@ import {
   OAuthService,
   type OAuthUser,
 } from 'src/application/services/oauth.service';
+import { User } from 'src/domain/entities';
 
 @Controller('auth')
 export class AuthController {
@@ -113,13 +115,9 @@ export class AuthController {
   @Post('verify-2fa')
   @UseGuards(AuthGuard())
   async verify2FA(
-    @Req() req: Request & { user?: { sub: string } },
+    @CurrentUser() user: User | null,
     @Body() verify2FADto: Verify2FADto,
   ): Promise<MessageResponseDto> {
-    const userId = req.user?.sub;
-    if (!userId) {
-      throw new Error('User ID not found in request');
-    }
-    return await this.verify2FAUseCase.execute(userId, verify2FADto);
+    return await this.verify2FAUseCase.execute(user, verify2FADto);
   }
 }

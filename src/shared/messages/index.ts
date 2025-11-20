@@ -8,11 +8,17 @@ export * from './auth.messages';
 import { SUCCESS_MESSAGES } from './success.messages';
 import { ERROR_MESSAGES } from './error.messages';
 import { INFO_MESSAGES } from './info.messages';
+import { USER_MESSAGES } from './user.message';
+import { AUTH_MESSAGES } from './auth.messages';
+import { REPOSITORY_MESSAGES } from './repository.messages';
 
 export const MESSAGES = {
+  ...AUTH_MESSAGES,
   ...SUCCESS_MESSAGES,
   ...ERROR_MESSAGES,
   ...INFO_MESSAGES,
+  ...USER_MESSAGES,
+  ...REPOSITORY_MESSAGES,
 } as const;
 
 export type MessageKey = keyof typeof MESSAGES;

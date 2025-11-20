@@ -5,7 +5,7 @@ import { UserToken } from '../../domain/entities';
 import { BaseService } from './base.service';
 import { generateEmailConfirmationToken } from 'src/shared/utils';
 import { CreateResult } from 'src/domain/types';
-import { AUTH_MESSAGES } from 'src/shared/messages';
+import { MESSAGES } from 'src/shared/messages';
 
 @Injectable()
 export class UserTokenService extends BaseService<UserToken> {
@@ -63,8 +63,7 @@ export class UserTokenService extends BaseService<UserToken> {
       transaction,
     );
 
-    if (!result)
-      throw new BadRequestException(AUTH_MESSAGES.FAILED_TO_CREATE_USER);
+    if (!result) throw new BadRequestException(MESSAGES.FAILED_TO_CREATE_USER);
 
     return result;
   }

@@ -4,7 +4,7 @@ import { MessageResponseDto } from 'src/shared/dtos/auth/message-response.dto';
 import { UserService } from '../services';
 import { Transactional } from 'src/infrastructure/database';
 import { Transaction } from 'sequelize';
-import { AUTH_MESSAGES } from 'src/shared/messages/auth.messages';
+import { MESSAGES } from 'src/shared/messages';
 
 @Injectable()
 export class ConfirmEmailUseCase {
@@ -18,7 +18,7 @@ export class ConfirmEmailUseCase {
     await this.userService.confirmEmail(dto.token, transaction);
 
     return {
-      message: AUTH_MESSAGES.EMAIL_CONFIRMED,
+      message: MESSAGES.EMAIL_CONFIRMED,
     };
   }
 }

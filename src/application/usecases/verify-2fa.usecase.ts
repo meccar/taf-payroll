@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Verify2FADto } from 'src/shared/dtos/auth/verify-2fa.dto';
 import { MessageResponseDto } from 'src/shared/dtos/auth/message-response.dto';
 import { UserService } from '../services';
 import { Transactional } from 'src/infrastructure/database';
 import { Transaction } from 'sequelize';
-import { AUTH_MESSAGES } from 'src/shared/messages/auth.messages';
+import { User } from 'src/domain/entities';
+import { MESSAGES } from 'src/shared/messages';
 
 @Injectable()
 export class Verify2FAUseCase {
@@ -12,14 +13,16 @@ export class Verify2FAUseCase {
 
   @Transactional()
   async execute(
-    userId: string,
+    user: User | null,
     dto: Verify2FADto,
     transaction?: Transaction,
   ): Promise<MessageResponseDto> {
-    await this.userService.verify2FA(userId, dto.code, transaction);
+    if (!user) throw new UnauthorizedException(MESSAGES.UNAUTHORIZED);
+
+    await this.userService.verify2FA(user.id, dto.code, transaction);
 
     return {
-      message: AUTH_MESSAGES.TWO_FACTOR_VERIFIED,
+      message: MESSAGES.TWO_FACTOR_VERIFIED,
     };
   }
 }

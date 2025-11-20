@@ -4,7 +4,7 @@ import { MessageResponseDto } from 'src/shared/dtos/auth/message-response.dto';
 import { UserService } from '../services';
 import { Transactional } from 'src/infrastructure/database';
 import { Transaction } from 'sequelize';
-import { AUTH_MESSAGES } from 'src/shared/messages/auth.messages';
+import { MESSAGES } from 'src/shared/messages';
 
 @Injectable()
 export class ResetPasswordUseCase {
@@ -22,7 +22,7 @@ export class ResetPasswordUseCase {
     );
 
     return {
-      message: AUTH_MESSAGES.PASSWORD_RESET_SUCCESS,
+      message: MESSAGES.PASSWORD_RESET_SUCCESS,
     };
   }
 }

@@ -1,0 +1,70 @@
+<mjml>
+  <mj-head>
+    <mj-title>Confirm Your Email</mj-title>
+    <mj-attributes>
+      <mj-all font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" />
+      <mj-text font-size="16px" color="#333333" line-height="1.6" />
+      <mj-button background-color="#2563eb" color="#ffffff" font-weight="600" border-radius="6px" />
+    </mj-attributes>
+    <mj-style>
+      .link { color: #2563eb; word-break: break-all; }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#f4f4f4">
+    <mj-section padding="20px">
+      <mj-column background-color="#ffffff" border-radius="8px" padding="40px">
+        
+        <!-- Header -->
+        <mj-text align="center" font-size="28px" font-weight="bold" color="#2563eb" padding-bottom="30px">
+          TAF Payroll
+        </mj-text>
+
+        <!-- Title -->
+        <mj-text font-size="24px" color="#1f2937" padding-bottom="20px">
+          Confirm Your Email Address
+        </mj-text>
+
+        <!-- Content -->
+        <mj-text padding-bottom="15px">
+          Hello,
+        </mj-text>
+        <mj-text padding-bottom="15px">
+          Thank you for registering with TAF Payroll! To complete your registration and activate your account, please confirm your email address by clicking the button below:
+        </mj-text>
+
+        <!-- Button -->
+        <mj-button href="{{confirmationUrl}}" padding-top="10px" padding-bottom="30px">
+          Confirm Email Address
+        </mj-button>
+
+        <mj-text padding-bottom="5px">
+          Or copy and paste this link into your browser:
+        </mj-text>
+        <mj-text>
+          <a href="{{confirmationUrl}}" class="link">{{confirmationUrl}}</a>
+        </mj-text>
+
+        <!-- Warning -->
+        <mj-text background-color="#fef3c7" padding="12px">
+          <div style="border-left: 4px solid #f59e0b; padding-left: 10px;">
+            <strong>Important:</strong> This link will expire in 24 hours. If you didn't create an account with us, please ignore this email.
+          </div>
+        </mj-text>
+
+        <mj-text padding-top="20px">
+          If you have any questions, please contact our support team.
+        </mj-text>
+
+        <!-- Footer -->
+        <mj-divider border-color="#e5e7eb" border-width="1px" padding-top="40px" padding-bottom="20px" />
+        <mj-text align="center" font-size="14px" color="#6b7280">
+          © {{currentYear}} TAF Payroll. All rights reserved.
+        </mj-text>
+        <mj-text align="center" font-size="14px" color="#6b7280">
+          This is an automated email, please do not reply.
+        </mj-text>
+
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

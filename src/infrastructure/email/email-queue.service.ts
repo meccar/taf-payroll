@@ -14,4 +14,8 @@ export class EmailQueueService {
   async sendEmailConfirmation(email: string, token: string): Promise<void> {
     await this.emailQueue.add('send-confirmation', { email, token });
   }
+
+  async sendEmailResetPassword(email: string, token: string): Promise<void> {
+    await this.emailQueue.add('send-reset-password', { email, token });
+  }
 }

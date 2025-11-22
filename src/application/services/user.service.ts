@@ -157,12 +157,12 @@ export class UserService extends BaseService<User> {
     if (updatedFailedCount >= maxAttempts) {
       const lockoutEnd = new Date(Date.now() + lockoutMinutes * 60 * 1000);
 
-      await user.update({
+      await this.update(user.id, {
         accessFailedCount: updatedFailedCount,
         lockoutEnd,
       });
     } else {
-      await user.update({
+      await this.update(user.id, {
         accessFailedCount: updatedFailedCount,
       });
     }

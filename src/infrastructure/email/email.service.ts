@@ -4,6 +4,7 @@ import * as nodemailer from 'nodemailer';
 import * as handlebars from 'handlebars';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import mjml2html from 'mjml';
 import { EmailConfig } from './email.config';
 
 export interface EmailOptions {
@@ -63,8 +64,26 @@ export class EmailService {
     context: Record<string, unknown>,
   ): Promise<string> {
     try {
-      const templatePath = path.join(this.templatesPath, `${templateName}.hbs`);
-      const templateContent = await fs.readFile(templatePath, 'utf-8');
+      const mjmlPath = path.join(this.templatesPath, `${templateName}.mjml`);
+      let templateContent: string;
+      let isMjml = false;
+
+      try {
+        templateContent = await fs.readFile(mjmlPath, 'utf-8');
+        isMjml = true;
+      } catch {
+        const hbsPath = path.join(this.templatesPath, `${templateName}.hbs`);
+        templateContent = await fs.readFile(hbsPath, 'utf-8');
+      }
+
+      if (isMjml) {
+        const { html, errors } = mjml2html(templateContent);
+        if (errors && errors.length > 0) {
+          console.warn('MJML compilation errors:', errors);
+        }
+        templateContent = html;
+      }
+
       const template = handlebars.compile(templateContent);
       return template(context);
     } catch (error) {
@@ -85,6 +104,24 @@ export class EmailService {
       template: 'email-confirmation',
       context: {
         confirmationUrl,
+        email,
+        currentYear: new Date().getFullYear(),
+      },
+    });
+  }
+
+  async sendEmailResetPassword(
+    email: string,
+    resetPasswordToken: string,
+  ): Promise<void> {
+    const resetPasswordUrl = `${this.emailConfig.baseUrl}/api/v1/auth/reset-password?token=${resetPasswordToken}`;
+
+    await this.sendEmail({
+      to: email,
+      subject: 'Reset Your Password',
+      template: 'reset-password',
+      context: {
+        resetPasswordUrl,
         email,
         currentYear: new Date().getFullYear(),
       },

@@ -432,16 +432,19 @@ describe('UserService', () => {
         passwordHash: 'hashed-password',
         lockoutEnabled: true,
       } as unknown as User;
-      const updateMock = jest.fn().mockResolvedValue(existingUser);
-
-      (existingUser as unknown as { update: jest.Mock }).update = updateMock;
+      const mockTransaction = {} as Transaction;
+      baseService.update.mockResolvedValue({
+        entity: existingUser,
+        transaction: mockTransaction,
+      } as UpdateResult<User>);
       baseService.findOne.mockResolvedValue(existingUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(service.login(loginUser)).rejects.toThrow(
         UnauthorizedException,
       );
-      expect(updateMock).toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(baseService.update).toHaveBeenCalled();
     });
 
     it('should reset access failed count and lockout on successful login', async () => {
@@ -565,13 +568,16 @@ describe('UserService', () => {
         lockoutEnabled: true,
         accessFailedCount: 2,
       } as unknown as User;
-      const updateMock = jest.fn().mockResolvedValue(user);
-
-      (user as unknown as { update: jest.Mock }).update = updateMock;
+      const mockTransaction = {} as Transaction;
+      baseService.update.mockResolvedValue({
+        entity: user,
+        transaction: mockTransaction,
+      } as UpdateResult<User>);
 
       await service.handleFailedLogin(user);
 
-      expect(updateMock).toHaveBeenCalledWith({
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(baseService.update).toHaveBeenCalledWith(user.id, {
         accessFailedCount: 3,
       });
     });
@@ -582,20 +588,27 @@ describe('UserService', () => {
         lockoutEnabled: true,
         accessFailedCount: 4, // One less than max (5)
       } as unknown as User;
-      const updateMock = jest.fn().mockResolvedValue(user);
-
-      (user as unknown as { update: jest.Mock }).update = updateMock;
+      const mockTransaction = {} as Transaction;
+      baseService.update.mockResolvedValue({
+        entity: user,
+        transaction: mockTransaction,
+      } as UpdateResult<User>);
 
       await service.handleFailedLogin(user);
 
-      expect(updateMock).toHaveBeenCalledWith({
-        accessFailedCount: 5,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        lockoutEnd: expect.any(Date),
-      });
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(baseService.update).toHaveBeenCalledWith(
+        user.id,
+        expect.objectContaining({
+          accessFailedCount: 5,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          lockoutEnd: expect.any(Date),
+        }),
+      );
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const lockoutEnd = (updateMock.mock.calls[0]?.[0] as { lockoutEnd: Date })
-        ?.lockoutEnd;
+      const lockoutEnd = (
+        baseService.update.mock.calls[0]?.[1] as { lockoutEnd: Date }
+      )?.lockoutEnd;
       expect(lockoutEnd?.getTime()).toBeGreaterThan(Date.now());
     });
 
@@ -605,13 +618,16 @@ describe('UserService', () => {
         lockoutEnabled: true,
         accessFailedCount: null as unknown as number,
       } as unknown as User;
-      const updateMock = jest.fn().mockResolvedValue(user);
-
-      (user as unknown as { update: jest.Mock }).update = updateMock;
+      const mockTransaction = {} as Transaction;
+      baseService.update.mockResolvedValue({
+        entity: user,
+        transaction: mockTransaction,
+      } as UpdateResult<User>);
 
       await service.handleFailedLogin(user);
 
-      expect(updateMock).toHaveBeenCalledWith({
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(baseService.update).toHaveBeenCalledWith(user.id, {
         accessFailedCount: 1,
       });
     });

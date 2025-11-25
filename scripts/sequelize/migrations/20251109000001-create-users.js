@@ -94,11 +94,6 @@ module.exports = {
         allowNull: true,
       },
     });
-
-    await queryInterface.addIndex('users', ['user_name'], {
-      name: 'idx_users_user_name',
-      unique: false,
-    });
   },
 
   down: async (queryInterface) => {

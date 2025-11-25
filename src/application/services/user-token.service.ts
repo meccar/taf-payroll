@@ -63,7 +63,8 @@ export class UserTokenService extends BaseService<UserToken> {
       transaction,
     );
 
-    if (!result) throw new BadRequestException(MESSAGES.FAILED_TO_CREATE_USER);
+    if (!result)
+      throw new BadRequestException(MESSAGES.ERR_FAILED_TO_CREATE_USER);
 
     return result;
   }

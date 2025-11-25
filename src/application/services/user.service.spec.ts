@@ -205,7 +205,7 @@ describe('UserService', () => {
         BadRequestException,
       );
       await expect(service.createUser(newUser)).rejects.toThrow(
-        AUTH_MESSAGES.USER_ALREADY_EXISTS,
+        AUTH_MESSAGES.ERR_USER_ALREADY_EXISTS,
       );
     });
 
@@ -252,7 +252,7 @@ describe('UserService', () => {
         BadRequestException,
       );
       await expect(service.createUser(newUser)).rejects.toThrow(
-        AUTH_MESSAGES.FAILED_TO_CREATE_USER,
+        AUTH_MESSAGES.ERR_FAILED_TO_CREATE_USER,
       );
     });
 
@@ -358,7 +358,7 @@ describe('UserService', () => {
     it('should throw error if neither email nor username provided', async () => {
       await expect(service.login({})).rejects.toThrow(BadRequestException);
       await expect(service.login({})).rejects.toThrow(
-        AUTH_MESSAGES.EMAIL_OR_USERNAME_REQUIRED,
+        AUTH_MESSAGES.ERR_EMAIL_OR_USERNAME_REQUIRED,
       );
     });
 
@@ -368,7 +368,7 @@ describe('UserService', () => {
       ).rejects.toThrow(BadRequestException);
       await expect(
         service.login({ normalizedEmail: 'test@example.com' }),
-      ).rejects.toThrow(AUTH_MESSAGES.PASSWORD_REQUIRED);
+      ).rejects.toThrow(AUTH_MESSAGES.ERR_PASSWORD_REQUIRED);
     });
 
     it('should throw error if user not found', async () => {
@@ -378,7 +378,7 @@ describe('UserService', () => {
         UnauthorizedException,
       );
       await expect(service.login(loginUser)).rejects.toThrow(
-        AUTH_MESSAGES.UNAUTHORIZED,
+        AUTH_MESSAGES.ERR_UNAUTHORIZED,
       );
     });
 
@@ -502,7 +502,7 @@ describe('UserService', () => {
         UnauthorizedException,
       );
       await expect(service.login(loginUser)).rejects.toThrow(
-        AUTH_MESSAGES.EMAIL_NOT_CONFIRMED,
+        AUTH_MESSAGES.ERR_EMAIL_NOT_CONFIRMED,
       );
     });
 

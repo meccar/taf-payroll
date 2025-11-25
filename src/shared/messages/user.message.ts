@@ -1,5 +1,8 @@
 export const USER_MESSAGES = {
-  USER_CREATED: 'User created successfully',
+  USER_CREATED: 'USER_CREATED',
+  ERR_USER_NOT_FOUND: 'ERR_USER_NOT_FOUND',
+  ERR_USER_ALREADY_EXISTS: 'ERR_USER_ALREADY_EXISTS',
+  ERR_USER_PASSWORD_NOT_MATCH: 'ERR_USER_PASSWORD_NOT_MATCH',
 } as const;
 
 export type UserMessageKey = keyof typeof USER_MESSAGES;

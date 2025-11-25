@@ -1,6 +1,6 @@
 export const SUCCESS_MESSAGES = {
-  SUCCESS: 'Success',
-  CREATED_SUCCESS: 'Created successfully',
+  SUCCESS: 'SUCCESS',
+  CREATED_SUCCESS: 'CREATED_SUCCESS',
 } as const;
 
 export type SuccessMessageKey = keyof typeof SUCCESS_MESSAGES;

@@ -17,7 +17,7 @@ export class Verify2FAUseCase {
     dto: Verify2FADto,
     transaction?: Transaction,
   ): Promise<MessageResponseDto> {
-    if (!user) throw new UnauthorizedException(MESSAGES.UNAUTHORIZED);
+    if (!user) throw new UnauthorizedException(MESSAGES.ERR_UNAUTHORIZED);
 
     await this.userService.verify2FA(user.id, dto.code, transaction);
 

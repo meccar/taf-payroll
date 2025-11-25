@@ -17,7 +17,9 @@ import { ResetPasswordUseCase } from './usecases/reset-password.usecase';
 import { ConfirmEmailUseCase } from './usecases/confirm-email.usecase';
 import { ResendConfirmationUseCase } from './usecases/resend-confirmation.usecase';
 import { Verify2FAUseCase } from './usecases/verify-2fa.usecase';
-import { OAuthUseCase } from './usecases/oauth.usecase';
+import { OAuthCallbackUseCase } from './usecases/oauth-callback.usecase';
+import { OAuthValidateProviderUseCase } from './usecases/oauth-validate-provider.usecase';
+import { OAuthGetCallbackErrorUseCase } from './usecases/oauth-get-callback-error.usecase';
 
 @Module({
   imports: [InfrastructureModule],
@@ -33,7 +35,9 @@ import { OAuthUseCase } from './usecases/oauth.usecase';
     // Use Cases
     CreateUserUseCase,
     LoginUseCase,
-    OAuthUseCase,
+    OAuthValidateProviderUseCase,
+    OAuthCallbackUseCase,
+    OAuthGetCallbackErrorUseCase,
     ForgotPasswordUseCase,
     ResetPasswordUseCase,
     ConfirmEmailUseCase,
@@ -45,7 +49,9 @@ import { OAuthUseCase } from './usecases/oauth.usecase';
   exports: [
     CreateUserUseCase,
     LoginUseCase,
-    OAuthUseCase,
+    OAuthValidateProviderUseCase,
+    OAuthCallbackUseCase,
+    OAuthGetCallbackErrorUseCase,
     ForgotPasswordUseCase,
     ResetPasswordUseCase,
     ConfirmEmailUseCase,

@@ -1,5 +1,5 @@
 export const APP = {
-  DEFAULT_PORT: 3000,
+  DEFAULT_PORT: 8000,
   DEV: 'development',
   PROD: 'production',
 } as const;

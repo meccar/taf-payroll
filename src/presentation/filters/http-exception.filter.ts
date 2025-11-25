@@ -35,20 +35,20 @@ export class AllExceptionsFilter implements ExceptionFilter {
       ) {
         const responseObj = exceptionResponse as { message?: string };
         message =
-          responseObj.message || exception.message || MESSAGES.ERROR_OCCURRED;
+          responseObj.message || exception.message || MESSAGES.ERR_OCCURRED;
       } else {
-        message = exception.message || MESSAGES.ERROR_OCCURRED;
+        message = exception.message || MESSAGES.ERR_OCCURRED;
       }
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = MESSAGES.INTERNAL_SERVER_ERROR;
+      message = MESSAGES.ERR_INTERNAL_SERVER_ERROR;
 
       // Log unexpected errors
       this.logger.error(
         `${MESSAGES.UNEXPECTED_ERROR} ${
           exception instanceof Error
             ? exception.message
-            : MESSAGES.UNKNOWN_ERROR
+            : MESSAGES.ERR_UNKNOWN_ERROR
         }`,
         exception instanceof Error ? exception.stack : undefined,
       );

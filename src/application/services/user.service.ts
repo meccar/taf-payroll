@@ -64,28 +64,31 @@ export class UserService extends BaseService<User> {
       existingUser = await this.findByUserName(user.normalizedUserName);
 
     if (existingUser)
-      throw new BadRequestException(MESSAGES.USER_ALREADY_EXISTS);
+      throw new BadRequestException(MESSAGES.ERR_USER_ALREADY_EXISTS);
 
     user.passwordHash = await bcrypt.hash(
       user.passwordHash!,
       SECURITY.BCRYPT_SALT_ROUNDS,
     );
+
     user.securityStamp = generateSecurityStamp();
     user.concurrencyStamp = generateConcurrencyStamp();
 
     // Create user with transaction
     const result = await this.create(user, undefined, transaction);
-    if (!result) throw new BadRequestException(MESSAGES.FAILED_TO_CREATE_USER);
+
+    if (!result)
+      throw new BadRequestException(MESSAGES.ERR_FAILED_TO_CREATE_USER);
 
     return result;
   }
 
   async login(user: Partial<User>, transaction?: Transaction): Promise<string> {
     if (!user.normalizedEmail && !user.normalizedUserName)
-      throw new BadRequestException(MESSAGES.EMAIL_OR_USERNAME_REQUIRED);
+      throw new BadRequestException(MESSAGES.ERR_EMAIL_OR_USERNAME_REQUIRED);
 
     if (!user.passwordHash)
-      throw new BadRequestException(MESSAGES.PASSWORD_REQUIRED);
+      throw new BadRequestException(MESSAGES.ERR_PASSWORD_REQUIRED);
 
     let existingUser: User | null = null;
 
@@ -95,17 +98,16 @@ export class UserService extends BaseService<User> {
     if (!existingUser && user.normalizedUserName)
       existingUser = await this.findByUserName(user.normalizedUserName);
 
-    if (!existingUser) throw new UnauthorizedException(MESSAGES.UNAUTHORIZED);
+    if (!existingUser)
+      throw new UnauthorizedException(MESSAGES.ERR_UNAUTHORIZED);
 
     if (existingUser.lockoutEnabled && existingUser.lockoutEnd) {
       const now = new Date();
       if (existingUser.lockoutEnd.getTime() > now.getTime()) {
-        const remainingMinutes = Math.ceil(
-          (existingUser.lockoutEnd.getTime() - now.getTime()) / 60000,
-        );
-        throw new UnauthorizedException(
-          MESSAGES.ACCOUNT_LOCKED(remainingMinutes),
-        );
+        // const remainingMinutes = Math.ceil(
+        //   (existingUser.lockoutEnd.getTime() - now.getTime()) / 60000,
+        // );
+        throw new UnauthorizedException(MESSAGES.ERR_ACCOUNT_LOCKED);
       }
     }
 
@@ -115,7 +117,7 @@ export class UserService extends BaseService<User> {
     );
     if (!isPasswordValid) {
       await this.handleFailedLogin(existingUser);
-      throw new UnauthorizedException(MESSAGES.UNAUTHORIZED);
+      throw new UnauthorizedException(MESSAGES.ERR_UNAUTHORIZED);
     }
 
     if (
@@ -133,11 +135,11 @@ export class UserService extends BaseService<User> {
       );
 
       if (!result || !result.entity)
-        throw new BadRequestException(MESSAGES.FAILED_TO_LOGIN);
+        throw new BadRequestException(MESSAGES.ERR_FAILED_TO_LOGIN);
     }
 
     if (user.normalizedEmail && !existingUser.emailConfirmed)
-      throw new UnauthorizedException(MESSAGES.EMAIL_NOT_CONFIRMED);
+      throw new UnauthorizedException(MESSAGES.ERR_EMAIL_NOT_CONFIRMED);
 
     // if (!existingUser!.twoFactorEnabled)
     //   throw new UnauthorizedException(MESSAGES.TWO_FACTOR_NOT_ENABLED);
@@ -266,7 +268,7 @@ export class UserService extends BaseService<User> {
   ): Promise<CreateResult<UserToken>> {
     const user = await this.findByEmail(email);
     if (!user) {
-      throw new BadRequestException(MESSAGES.USER_NOT_FOUND);
+      throw new BadRequestException(MESSAGES.ERR_USER_NOT_FOUND);
     }
 
     return await this.userTokenService.setToken(
@@ -292,12 +294,12 @@ export class UserService extends BaseService<User> {
     });
 
     if (!tokenRecord) {
-      throw new BadRequestException(MESSAGES.INVALID_TOKEN);
+      throw new BadRequestException(MESSAGES.ERR_INVALID_TOKEN);
     }
 
     const user = await this.findById(tokenRecord.userId);
     if (!user) {
-      throw new BadRequestException(MESSAGES.USER_NOT_FOUND);
+      throw new BadRequestException(MESSAGES.ERR_USER_NOT_FOUND);
     }
 
     const passwordHash = await bcrypt.hash(
@@ -316,7 +318,7 @@ export class UserService extends BaseService<User> {
     );
 
     if (!result) {
-      throw new BadRequestException(MESSAGES.FAILED_TO_LOGIN);
+      throw new BadRequestException(MESSAGES.ERR_FAILED_TO_LOGIN);
     }
 
     await this.userTokenService.removeToken(
@@ -343,16 +345,16 @@ export class UserService extends BaseService<User> {
     });
 
     if (!tokenRecord) {
-      throw new BadRequestException(MESSAGES.INVALID_TOKEN);
+      throw new BadRequestException(MESSAGES.ERR_INVALID_TOKEN);
     }
 
     const user = await this.findById(tokenRecord.userId);
     if (!user) {
-      throw new BadRequestException(MESSAGES.USER_NOT_FOUND);
+      throw new BadRequestException(MESSAGES.ERR_USER_NOT_FOUND);
     }
 
     if (user.emailConfirmed) {
-      throw new BadRequestException(MESSAGES.EMAIL_ALREADY_CONFIRMED);
+      throw new BadRequestException(MESSAGES.ERR_EMAIL_ALREADY_CONFIRMED);
     }
 
     const result = await this.update(
@@ -363,7 +365,7 @@ export class UserService extends BaseService<User> {
     );
 
     if (!result) {
-      throw new BadRequestException(MESSAGES.FAILED_TO_LOGIN);
+      throw new BadRequestException(MESSAGES.ERR_FAILED_TO_LOGIN);
     }
 
     await this.userTokenService.removeToken(
@@ -382,11 +384,11 @@ export class UserService extends BaseService<User> {
   ): Promise<CreateResult<UserToken>> {
     const user = await this.findByEmail(email);
     if (!user) {
-      throw new BadRequestException(MESSAGES.USER_NOT_FOUND);
+      throw new BadRequestException(MESSAGES.ERR_USER_NOT_FOUND);
     }
 
     if (user.emailConfirmed) {
-      throw new BadRequestException(MESSAGES.EMAIL_ALREADY_CONFIRMED);
+      throw new BadRequestException(MESSAGES.ERR_EMAIL_ALREADY_CONFIRMED);
     }
 
     return await this.userTokenService.setToken(
@@ -404,11 +406,11 @@ export class UserService extends BaseService<User> {
   ): Promise<boolean> {
     const user = await this.findById(userId);
     if (!user) {
-      throw new BadRequestException(MESSAGES.USER_NOT_FOUND);
+      throw new BadRequestException(MESSAGES.ERR_USER_NOT_FOUND);
     }
 
     if (!user.twoFactorEnabled) {
-      throw new BadRequestException(MESSAGES.TWO_FACTOR_NOT_ENABLED);
+      throw new BadRequestException(MESSAGES.ERR_TWO_FACTOR_NOT_ENABLED);
     }
 
     // TODO: Implement actual 2FA verification logic (TOTP, SMS, etc.)
@@ -421,7 +423,7 @@ export class UserService extends BaseService<User> {
     );
 
     if (!tokenRecord || tokenRecord.value !== code) {
-      throw new BadRequestException(MESSAGES.INVALID_2FA_CODE);
+      throw new BadRequestException(MESSAGES.ERR_INVALID_2FA_CODE);
     }
 
     await this.userTokenService.removeToken(

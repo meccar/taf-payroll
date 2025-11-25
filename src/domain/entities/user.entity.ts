@@ -6,7 +6,6 @@ import {
   AllowNull,
   HasMany,
   BelongsToMany,
-  Index,
 } from 'sequelize-typescript';
 import { BaseEntity } from './base.entity';
 import { Role } from './role.entity';
@@ -31,7 +30,6 @@ export class User extends BaseEntity {
   declare userName?: string;
 
   @AllowNull(true)
-  @Index({ unique: true })
   @Column({ type: DataType.STRING(256) })
   declare normalizedUserName?: string;
 
@@ -40,7 +38,6 @@ export class User extends BaseEntity {
   declare email?: string;
 
   @AllowNull(true)
-  @Index({ unique: true })
   @Column({ type: DataType.STRING(256) })
   declare normalizedEmail?: string;
 

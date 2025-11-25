@@ -21,24 +21,24 @@ import { ResendConfirmationDto } from '../../shared/dtos/auth/resend-confirmatio
 import { Verify2FADto } from '../../shared/dtos/auth/verify-2fa.dto';
 import { MessageResponseDto } from '../../shared/dtos/auth/message-response.dto';
 import { LoginUseCase } from 'src/application/usecases/login.usecase';
-import { OAuthUseCase } from 'src/application/usecases/oauth.usecase';
+import { OAuthCallbackUseCase } from 'src/application/usecases/oauth-callback.usecase';
 import { ForgotPasswordUseCase } from 'src/application/usecases/forgot-password.usecase';
 import { ResetPasswordUseCase } from 'src/application/usecases/reset-password.usecase';
 import { ConfirmEmailUseCase } from 'src/application/usecases/confirm-email.usecase';
 import { ResendConfirmationUseCase } from 'src/application/usecases/resend-confirmation.usecase';
 import { Verify2FAUseCase } from 'src/application/usecases/verify-2fa.usecase';
-import {
-  OAuthService,
-  type OAuthUser,
-} from 'src/application/services/oauth.service';
+import { type OAuthUser } from 'src/application/services/oauth.service';
 import { User } from 'src/domain/entities';
+import { OAuthGetCallbackErrorUseCase } from 'src/application/usecases/oauth-get-callback-error.usecase';
+import { OAuthValidateProviderUseCase } from 'src/application/usecases/oauth-validate-provider.usecase';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly loginUseCase: LoginUseCase,
-    private readonly oauthUseCase: OAuthUseCase,
-    private readonly oauthService: OAuthService,
+    private readonly oauthCallbackUseCase: OAuthCallbackUseCase,
+    private readonly oauthGetCallbackErrorUseCase: OAuthGetCallbackErrorUseCase,
+    private readonly oauthValidateProviderUseCase: OAuthValidateProviderUseCase,
     private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
     private readonly confirmEmailUseCase: ConfirmEmailUseCase,
@@ -58,26 +58,25 @@ export class AuthController {
   oauth(
     @Param('provider') provider: oauthConstants.AcceptedOAuthProvider,
   ): void {
-    this.oauthService.validateProvider(provider);
+    this.oauthValidateProviderUseCase.execute(provider);
   }
 
   @Get('oauth/:provider/callback')
   @UseGuards(AuthGuard())
   async oauthCallback(
     @Param('provider') provider: oauthConstants.AcceptedOAuthProvider,
-    @Req() req: Request & { user?: unknown },
+    @Req() req: Request & { user?: OAuthUser },
     @Res() res: Response,
   ): Promise<void> {
     try {
-      const oauthUser = req.user as OAuthUser | null;
-      const token = await this.oauthUseCase.executeCallback(
-        oauthUser,
+      const redirectUrl = await this.oauthCallbackUseCase.executeCallback(
+        req.user,
         provider,
       );
-      const redirectUrl = this.oauthService.getCallbackRedirectUrl(token);
+
       res.redirect(redirectUrl);
     } catch (error: unknown) {
-      const errorRedirectUrl = this.oauthService.getCallbackErrorRedirectUrl(
+      const errorRedirectUrl = this.oauthGetCallbackErrorUseCase.execute(
         error as Error,
       );
       res.redirect(errorRedirectUrl);

@@ -34,14 +34,15 @@ export class CreateUserUseCase {
       result.transaction,
     );
 
-    this.eventEmitter.emit(
-      'user.created',
-      new UserCreatedEvent(
-        result.entity.id,
-        result.entity.email || '',
-        token.entity.value || '',
-      ),
-    );
+    if (result.entity.email)
+      this.eventEmitter.emit(
+        'user.created',
+        new UserCreatedEvent(
+          result.entity.id,
+          result.entity.email || '',
+          token.entity.value || '',
+        ),
+      );
 
     return { message: MESSAGES.USER_CREATED };
   }

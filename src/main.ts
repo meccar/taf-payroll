@@ -5,7 +5,6 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './presentation/filters/http-exception.filter';
 import { TransformInterceptor } from './presentation/interceptors/transform.interceptor';
-import { BadRequestException } from '@nestjs/common';
 import { API, SWAGGER, APP } from './shared/constants';
 import { MESSAGES } from './shared/messages';
 
@@ -52,20 +51,6 @@ async function bootstrap() {
         enableImplicitConversion: true,
       },
       disableErrorMessages: environment === APP.PROD,
-      exceptionFactory: (errors) => {
-        const formattedErrors = errors.reduce(
-          (acc, error) => {
-            acc[error.property] = Object.values(error.constraints || {});
-            return acc;
-          },
-          {} as Record<string, string[]>,
-        );
-
-        return new BadRequestException({
-          message: MESSAGES.VALIDATION_FAILED,
-          errors: formattedErrors,
-        });
-      },
     }),
   );
 

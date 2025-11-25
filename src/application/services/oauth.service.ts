@@ -107,7 +107,7 @@ export class OAuthService {
         transaction,
       });
       if (!foundUser) {
-        throw new UnauthorizedException(AUTH_MESSAGES.UNAUTHORIZED);
+        throw new UnauthorizedException(AUTH_MESSAGES.ERR_UNAUTHORIZED);
       }
       user = foundUser;
     } else {
@@ -143,7 +143,9 @@ export class OAuthService {
           transaction,
         );
         if (!createResult)
-          throw new BadRequestException(AUTH_MESSAGES.FAILED_TO_CREATE_USER);
+          throw new BadRequestException(
+            AUTH_MESSAGES.ERR_FAILED_TO_CREATE_USER,
+          );
 
         user = createResult.entity;
 

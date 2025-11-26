@@ -74,8 +74,5 @@ export class CreateUserDto {
   @MinLength(8, {
     message: MESSAGES.ERR_MIN_LENGTH,
   })
-  @MaxLength(20, {
-    message: MESSAGES.ERR_MAX_LENGTH,
-  })
   password: string;
 }

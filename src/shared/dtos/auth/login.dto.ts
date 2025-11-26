@@ -7,6 +7,7 @@ import {
   MaxLength,
   IsEmail,
 } from 'class-validator';
+import { MESSAGES } from 'src/shared/messages';
 
 export class LoginDto {
   @ApiProperty({
@@ -17,11 +18,21 @@ export class LoginDto {
     minLength: 3,
     maxLength: 20,
   })
-  @ValidateIf((dto: LoginDto) => !dto.email)
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(3)
-  @MaxLength(20)
+  @ValidateIf((dto: LoginDto) => !dto.email, {
+    message: MESSAGES.ERR_REQUIRED,
+  })
+  @IsString({
+    message: MESSAGES.ERR_MUST_BE_A_STRING,
+  })
+  @IsNotEmpty({
+    message: MESSAGES.ERR_REQUIRED,
+  })
+  @MinLength(3, {
+    message: MESSAGES.ERR_MIN_LENGTH,
+  })
+  @MaxLength(20, {
+    message: MESSAGES.ERR_MAX_LENGTH,
+  })
   username: string;
 
   @ApiProperty({
@@ -31,9 +42,18 @@ export class LoginDto {
     required: true,
     type: String,
   })
-  @ValidateIf((dto: LoginDto) => !dto.username)
-  @IsEmail()
-  @IsNotEmpty()
+  @ValidateIf((dto: LoginDto) => !dto.username, {
+    message: MESSAGES.ERR_REQUIRED,
+  })
+  @IsEmail(
+    {},
+    {
+      message: MESSAGES.ERR_EMAIL_FORMAT,
+    },
+  )
+  @IsNotEmpty({
+    message: MESSAGES.ERR_REQUIRED,
+  })
   email: string;
 
   @ApiProperty({
@@ -45,7 +65,11 @@ export class LoginDto {
     minLength: 8,
     maxLength: 20,
   })
-  @IsString()
-  @IsNotEmpty()
+  @IsString({
+    message: MESSAGES.ERR_MUST_BE_A_STRING,
+  })
+  @IsNotEmpty({
+    message: MESSAGES.ERR_REQUIRED,
+  })
   password: string;
 }

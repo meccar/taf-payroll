@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, Length } from 'class-validator';
+import { MESSAGES } from 'src/shared/messages';
 
 export class Verify2FADto {
   @ApiProperty({
@@ -10,8 +11,14 @@ export class Verify2FADto {
     minLength: 6,
     maxLength: 6,
   })
-  @IsString()
-  @IsNotEmpty()
-  @Length(6, 6)
+  @IsString({
+    message: MESSAGES.ERR_MUST_BE_A_STRING,
+  })
+  @IsNotEmpty({
+    message: MESSAGES.ERR_REQUIRED,
+  })
+  @Length(6, 6, {
+    message: MESSAGES.ERR_LENGTH,
+  })
   code: string;
 }

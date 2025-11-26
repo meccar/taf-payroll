@@ -605,7 +605,7 @@ describe('UserService', () => {
           lockoutEnd: expect.any(Date),
         }),
       );
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
       const lockoutEnd = (
         baseService.update.mock.calls[0]?.[1] as { lockoutEnd: Date }
       )?.lockoutEnd;

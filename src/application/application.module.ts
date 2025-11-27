@@ -6,6 +6,7 @@ import {
   RoleService,
   UserClaimService,
   UserLoginService,
+  UserRoleService,
   UserService,
   UserTokenService,
 } from './services';
@@ -30,6 +31,7 @@ import { OAuthGetCallbackErrorUseCase } from './usecases/oauth-get-callback-erro
     UserClaimService,
     RoleClaimService,
     UserLoginService,
+    UserRoleService,
     UserTokenService,
     OAuthService,
     // Use Cases

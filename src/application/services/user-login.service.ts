@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FindOptions, Transaction } from 'sequelize';
 import { UserLogin } from '../../domain/entities';
@@ -25,13 +25,9 @@ export class UserLoginService extends BaseService<UserLogin> {
     });
   }
 
-  async getUserLogins(
-    userId: string,
-    options?: FindOptions,
-  ): Promise<UserLogin[]> {
-    return UserLogin.findAll({
+  async getLogins(userId: string): Promise<UserLogin[]> {
+    return this.findAll({
       where: { userId },
-      ...options,
     });
   }
 
@@ -42,15 +38,18 @@ export class UserLoginService extends BaseService<UserLogin> {
     providerDisplayName?: string,
     transaction?: Transaction,
   ): Promise<UserLogin> {
-    return UserLogin.create(
+    const result = await this.create(
       {
         userId,
         loginProvider,
         providerKey,
         providerDisplayName,
       },
-      { transaction },
+      undefined,
+      transaction,
     );
+    if (!result) throw new BadRequestException('Failed to add login');
+    return result.entity;
   }
 
   async removeLogin(

@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { FindOptions, Transaction, WhereOptions } from 'sequelize';
+import { Transaction, WhereOptions } from 'sequelize';
 import { UserClaim } from '../../domain/entities';
 import { BaseService } from './base.service';
 
@@ -14,38 +14,62 @@ export class UserClaimService extends BaseService<UserClaim> {
     return UserClaim.name;
   }
 
-  async getUserClaims(
-    userId: string,
-    options?: FindOptions,
-  ): Promise<UserClaim[]> {
-    return UserClaim.findAll({
+  async getClaims(userId: string): Promise<UserClaim[]> {
+    return this.findAll({
       where: { userId },
-      ...options,
     });
   }
 
-  async addClaimToUser(
+  async addClaim(
     userId: string,
     claimType: string,
     claimValue: string,
     transaction?: Transaction,
   ): Promise<UserClaim> {
-    return UserClaim.create(
+    const result = await this.create(
       {
         userId,
         claimType,
         claimValue,
       },
-      { transaction },
+      undefined,
+      transaction,
     );
+    if (!result) throw new BadRequestException('Failed to add claim to user');
+    return result.entity;
   }
 
-  async removeClaimById(
-    claimId: number,
+  async replaceClaim(
+    userId: string,
+    claimType: string,
+    claimValue: string,
+    newClaimType: string,
+    newClaimValue: string,
     transaction?: Transaction,
   ): Promise<boolean> {
-    const result = await this.delete(String(claimId), undefined, transaction);
-    return result.success;
+    const claim = await UserClaim.findOne({
+      where: { userId, claimType, claimValue },
+      transaction,
+    });
+    if (!claim) return false;
+    await claim.update(
+      { claimType: newClaimType, claimValue: newClaimValue },
+      { transaction },
+    );
+    return true;
+  }
+
+  async removeClaim(
+    userId: string,
+    claimType: string,
+    claimValue: string,
+    transaction?: Transaction,
+  ): Promise<boolean> {
+    const deleted = await UserClaim.destroy({
+      where: { userId, claimType, claimValue },
+      transaction,
+    });
+    return deleted > 0;
   }
 
   async removeClaims(

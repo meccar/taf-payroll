@@ -14,13 +14,13 @@ export class RoleClaimService extends BaseService<RoleClaim> {
     return RoleClaim.name;
   }
 
-  async getRoleClaims(roleId: string): Promise<RoleClaim[]> {
+  async getClaims(roleId: string): Promise<RoleClaim[]> {
     return this.findAll({
       where: { roleId },
     });
   }
 
-  async addClaimToRole(
+  async addClaim(
     roleId: string,
     claimType: string,
     claimValue: string,
@@ -39,8 +39,16 @@ export class RoleClaimService extends BaseService<RoleClaim> {
     return result.entity;
   }
 
-  async removeClaims(id: string, transaction?: Transaction): Promise<boolean> {
-    const result = await this.delete(id, undefined, transaction);
-    return result.success;
+  async removeClaim(
+    roleId: string,
+    claimType: string,
+    claimValue: string,
+    transaction?: Transaction,
+  ): Promise<boolean> {
+    const deleted = await RoleClaim.destroy({
+      where: { roleId, claimType, claimValue },
+      transaction,
+    });
+    return deleted > 0;
   }
 }

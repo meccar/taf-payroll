@@ -2,6 +2,7 @@ export * from './base.service';
 export * from './user.service';
 export * from './role.service';
 export * from './user-claim.service';
+export * from './user-role.service';
 export * from './role-claim.service';
 export * from './user-login.service';
 export * from './user-token.service';

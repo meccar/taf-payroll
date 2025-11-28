@@ -18,7 +18,7 @@ export class GetUserClaimsUseCase {
   ): Promise<Array<{ type: string; value: string }>> {
     const roles = await this.userRoleService.getRolesForUser(userId);
     if (!roles || roles.length === 0)
-      throw new BadRequestException(MESSAGES.ERR_USER_NOT_FOUND);
+      throw new BadRequestException(MESSAGES.ERR_UNAUTHORIZED);
 
     const claims: Array<{ type: string; value: string }> = [];
 
@@ -48,6 +48,35 @@ export class GetUserClaimsUseCase {
     }
 
     return this.deduplicateClaims(claims);
+  }
+
+  async getPermissions(userId: string): Promise<string[]> {
+    const allClaims = await this.execute(userId);
+
+    return allClaims
+      .filter((claim) => claim.type === 'Permission')
+      .map((claim) => claim.value);
+  }
+
+  async hasPermission(userId: string, permission: string): Promise<boolean> {
+    const permissions = await this.getPermissions(userId);
+    return permissions.includes(permission);
+  }
+
+  async hasAnyPermission(
+    userId: string,
+    permissions: string[],
+  ): Promise<boolean> {
+    const userPermissions = await this.getPermissions(userId);
+    return permissions.some((p) => userPermissions.includes(p));
+  }
+
+  async hasAllPermissions(
+    userId: string,
+    permissions: string[],
+  ): Promise<boolean> {
+    const userPermissions = await this.getPermissions(userId);
+    return permissions.every((p) => userPermissions.includes(p));
   }
 
   private deduplicateClaims(

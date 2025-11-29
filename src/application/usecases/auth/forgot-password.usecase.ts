@@ -1,15 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ResendConfirmationDto } from 'src/shared/dtos/auth/resend-confirmation.dto';
-import { MessageResponseDto } from 'src/shared/dtos/auth/message-response.dto';
-import { UserService } from '../services';
 import { Transactional } from 'src/infrastructure/database';
 import { Transaction } from 'sequelize';
-import { EmailConfirmationRequestedEvent } from '../../domain/events/user.events';
 import { MESSAGES } from 'src/shared/messages';
+import { ForgotPasswordDto, MessageResponseDto } from 'src/shared/dtos';
+import { UserService } from 'src/application/services';
+import { PasswordResetRequestedEvent } from 'src/domain/events/user.events';
 
 @Injectable()
-export class ResendConfirmationUseCase {
+export class ForgotPasswordUseCase {
   constructor(
     private readonly userService: UserService,
     private readonly eventEmitter: EventEmitter2,
@@ -17,17 +16,17 @@ export class ResendConfirmationUseCase {
 
   @Transactional()
   async execute(
-    dto: ResendConfirmationDto,
+    dto: ForgotPasswordDto,
     transaction?: Transaction,
   ): Promise<MessageResponseDto> {
-    const result = await this.userService.resendEmailConfirmation(
+    const result = await this.userService.requestPasswordReset(
       dto.email,
       transaction,
     );
 
     this.eventEmitter.emit(
-      'email.confirmation.requested',
-      new EmailConfirmationRequestedEvent(
+      'password.reset.requested',
+      new PasswordResetRequestedEvent(
         result.entity.userId,
         dto.email,
         result.entity.value || '',
@@ -35,7 +34,7 @@ export class ResendConfirmationUseCase {
     );
 
     return {
-      message: MESSAGES.EMAIL_CONFIRMATION_SENT,
+      message: MESSAGES.PASSWORD_RESET_EMAIL_SENT,
     };
   }
 }

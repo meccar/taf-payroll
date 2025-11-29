@@ -137,11 +137,12 @@ export abstract class BaseService<T extends Model> {
   }
 
   async delete(
-    id: string,
+    condition: WhereOptions,
     context?: AuditContext,
     transaction?: Transaction,
   ): Promise<DeleteResult> {
-    const entity = await this.model.findByPk(id, {
+    const entity = await this.model.findOne({
+      where: condition,
       paranoid: true,
       transaction,
     });
@@ -155,7 +156,7 @@ export abstract class BaseService<T extends Model> {
         'entity.deleted',
         new EntityDeletedEvent(
           this.getEntityName(),
-          id,
+          entity.getDataValue('id') as string,
           oldValue as Record<string, unknown>,
           context?.userId,
           {
@@ -199,6 +200,7 @@ export abstract class BaseService<T extends Model> {
     dataArray: Partial<T>[],
     context?: AuditContext,
     transaction?: Transaction,
+    options?: { ignoreDuplicates?: boolean },
   ): Promise<BulkCreateResult<T>> {
     if (dataArray.length === 0) return { entities: [], transaction };
 
@@ -207,6 +209,7 @@ export abstract class BaseService<T extends Model> {
       {
         transaction,
         returning: true,
+        ignoreDuplicates: options?.ignoreDuplicates,
       },
     );
 
@@ -275,5 +278,40 @@ export abstract class BaseService<T extends Model> {
     }
 
     return { entities: updatedEntities, transaction };
+  }
+
+  async bulkDelete(
+    condition: WhereOptions,
+    context?: AuditContext,
+    transaction?: Transaction,
+  ): Promise<DeleteResult> {
+    const entities = await this.model.findAll({
+      where: condition,
+      transaction,
+    });
+
+    for (const entity of entities) {
+      const oldValue: unknown = entity.toJSON();
+      await entity.destroy({ transaction, force: false });
+
+      if (this.shouldAudit())
+        await this.eventEmitter.emitAsync(
+          'entity.deleted',
+          new EntityDeletedEvent(
+            this.getEntityName(),
+            entity.getDataValue('id') as string,
+            oldValue as Record<string, unknown>,
+            context?.userId,
+            {
+              ipAddress: context?.ipAddress,
+              requestId: context?.requestId,
+              ...context?.metadata,
+            },
+            transaction,
+          ),
+        );
+    }
+
+    return { success: true, transaction };
   }
 }

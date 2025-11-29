@@ -1,16 +1,16 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { OAuthService, type OAuthUser } from '../services/oauth.service';
-import type { AcceptedOAuthProvider } from '../../shared/constants/oauth.constants';
-import { Transactional } from '../../infrastructure/database';
 import type { Transaction } from 'sequelize';
+import * as services from 'src/application/services';
+import { Transactional } from 'src/infrastructure/database';
+import type { AcceptedOAuthProvider } from 'src/shared/constants';
 
 @Injectable()
 export class OAuthCallbackUseCase {
-  constructor(private readonly oauthService: OAuthService) {}
+  constructor(private readonly oauthService: services.OAuthService) {}
 
   @Transactional()
   async execute(
-    oauthUser: OAuthUser,
+    oauthUser: services.OAuthUser,
     transaction?: Transaction,
   ): Promise<string> {
     return await this.oauthService.authenticate(oauthUser, transaction);
@@ -18,7 +18,7 @@ export class OAuthCallbackUseCase {
 
   @Transactional()
   async executeCallback(
-    oauthUser?: OAuthUser,
+    oauthUser?: services.OAuthUser,
     provider?: AcceptedOAuthProvider,
     transaction?: Transaction,
   ): Promise<string> {

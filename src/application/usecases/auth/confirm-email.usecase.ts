@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfirmEmailDto } from 'src/shared/dtos/auth/confirm-email.dto';
-import { MessageResponseDto } from 'src/shared/dtos/auth/message-response.dto';
-import { UserService } from '../services';
+import { MessageResponseDto } from 'src/shared/dtos/common/message-response.dto';
+import { UserService } from '../../services';
 import { Transactional } from 'src/infrastructure/database';
 import { Transaction } from 'sequelize';
 import { MESSAGES } from 'src/shared/messages';

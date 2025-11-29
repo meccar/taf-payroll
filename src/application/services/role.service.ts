@@ -43,7 +43,7 @@ export class RoleService extends BaseService<Role> {
   }
 
   async deleteRole(id: string, transaction?: Transaction): Promise<boolean> {
-    const result = await this.delete(id, undefined, transaction);
+    const result = await this.delete({ where: { id } }, undefined, transaction);
     return result.success;
   }
 }

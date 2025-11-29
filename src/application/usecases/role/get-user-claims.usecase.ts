@@ -1,10 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
-import { MESSAGES } from '../../shared/messages';
+import { MESSAGES } from '../../../shared/messages';
 import {
   RoleClaimService,
   UserClaimService,
   UserRoleService,
-} from '../services';
+} from '../../services';
 
 export class GetUserClaimsUseCase {
   constructor(

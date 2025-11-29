@@ -1,7 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { CreateUserUseCase } from '../../application/usecases/create-user.usecase';
-import { CreateUserDto } from '../../shared/dtos/user/create-user.dto';
-import { MessageResponseDto } from 'src/shared/dtos/auth/message-response.dto';
+import { CreateUserUseCase } from 'src/application/usecases';
+import { CreateUserDto, MessageResponseDto } from 'src/shared/dtos';
 import { MESSAGES } from 'src/shared/messages';
 
 @Controller('user')

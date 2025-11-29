@@ -12,25 +12,29 @@ import { AuthGuard } from '@nestjs/passport';
 import type { Request, Response } from 'express';
 import { CurrentUser } from '../decorators';
 import * as oauthConstants from '../../shared/constants/oauth.constants';
-import { LoginDto } from '../../shared/dtos/auth/login.dto';
-import { LoginResponseDto } from '../../shared/dtos/auth/login-response.dto';
-import { ForgotPasswordDto } from '../../shared/dtos/auth/forgot-password.dto';
-import { ResetPasswordDto } from '../../shared/dtos/auth/reset-password.dto';
-import { ConfirmEmailDto } from '../../shared/dtos/auth/confirm-email.dto';
-import { ResendConfirmationDto } from '../../shared/dtos/auth/resend-confirmation.dto';
-import { Verify2FADto } from '../../shared/dtos/auth/verify-2fa.dto';
-import { MessageResponseDto } from '../../shared/dtos/auth/message-response.dto';
-import { LoginUseCase } from 'src/application/usecases/login.usecase';
-import { OAuthCallbackUseCase } from 'src/application/usecases/oauth-callback.usecase';
-import { ForgotPasswordUseCase } from 'src/application/usecases/forgot-password.usecase';
-import { ResetPasswordUseCase } from 'src/application/usecases/reset-password.usecase';
-import { ConfirmEmailUseCase } from 'src/application/usecases/confirm-email.usecase';
-import { ResendConfirmationUseCase } from 'src/application/usecases/resend-confirmation.usecase';
-import { Verify2FAUseCase } from 'src/application/usecases/verify-2fa.usecase';
 import { type OAuthUser } from 'src/application/services/oauth.service';
 import { User } from 'src/domain/entities';
-import { OAuthGetCallbackErrorUseCase } from 'src/application/usecases/oauth-get-callback-error.usecase';
-import { OAuthValidateProviderUseCase } from 'src/application/usecases/oauth-validate-provider.usecase';
+import {
+  ConfirmEmailDto,
+  ForgotPasswordDto,
+  LoginDto,
+  LoginResponseDto,
+  MessageResponseDto,
+  ResendConfirmationDto,
+  ResetPasswordDto,
+  Verify2FADto,
+} from 'src/shared/dtos';
+import {
+  ConfirmEmailUseCase,
+  ForgotPasswordUseCase,
+  LoginUseCase,
+  OAuthCallbackUseCase,
+  OAuthGetCallbackErrorUseCase,
+  OAuthValidateProviderUseCase,
+  ResendConfirmationUseCase,
+  ResetPasswordUseCase,
+  Verify2FAUseCase,
+} from 'src/application/usecases';
 
 @Controller('auth')
 export class AuthController {

@@ -1,9 +1,9 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsOptional, IsInt, Min, Max, IsString, IsEnum } from 'class-validator';
-import { SortOrder } from '../types/sort.types';
-import type { SortOrderType } from '../types/sort.types';
-import { PAGINATION } from '../constants/pagination.constants';
+import { SortOrder } from '../../types/sort.types';
+import type { SortOrderType } from '../../types/sort.types';
+import { PAGINATION } from '../../constants/pagination.constants';
 
 export class PaginationDto {
   @ApiPropertyOptional({

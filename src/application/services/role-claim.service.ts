@@ -3,6 +3,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Transaction } from 'sequelize';
 import { RoleClaim } from '../../domain/entities';
 import { BaseService } from './base.service';
+import { PermissionDto } from 'src/shared/dtos';
+import { DeleteResult } from 'src/domain/types';
 
 @Injectable()
 export class RoleClaimService extends BaseService<RoleClaim> {
@@ -44,11 +46,35 @@ export class RoleClaimService extends BaseService<RoleClaim> {
     claimType: string,
     claimValue: string,
     transaction?: Transaction,
-  ): Promise<boolean> {
-    const deleted = await RoleClaim.destroy({
+  ): Promise<DeleteResult> {
+    return await this.delete({
       where: { roleId, claimType, claimValue },
       transaction,
     });
-    return deleted > 0;
+  }
+
+  async addPermission(
+    roleId: string,
+    permission: PermissionDto[],
+    transaction?: Transaction,
+  ): Promise<RoleClaim[]> {
+    const claims: Partial<RoleClaim>[] = [];
+
+    permission.forEach((p) => {
+      if (p.permissions) {
+        p.permissions.forEach((perm) => {
+          claims.push({
+            roleId,
+            claimType: 'Permission',
+            claimValue: perm,
+          });
+        });
+      }
+    });
+
+    const result = await this.bulkCreate(claims, undefined, transaction, {
+      ignoreDuplicates: true,
+    });
+    return result.entities;
   }
 }

@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { LoginDto } from 'src/shared/dtos/auth/login.dto';
-import { UserService } from '../services';
-import { UserMapper } from '../mappers/user.mapper';
 import { Transactional } from 'src/infrastructure/database';
 import { Transaction } from 'sequelize';
+import { UserService } from 'src/application/services';
+import { UserMapper } from 'src/application/mappers/user.mapper';
 
 @Injectable()
 export class LoginUseCase {

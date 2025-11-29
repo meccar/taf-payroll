@@ -7,7 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { BaseResponseDto } from '../../shared/dtos/base-response.dto';
+import { BaseResponseDto } from '../../shared/dtos/common/base-response.dto';
 import { MESSAGES } from '../../shared/messages';
 
 @Catch()

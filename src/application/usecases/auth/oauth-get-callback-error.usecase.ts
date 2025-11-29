@@ -1,4 +1,4 @@
-import { OAuthService } from '../services';
+import { OAuthService } from 'src/application/services';
 
 export class OAuthGetCallbackErrorUseCase {
   constructor(private readonly oauthService: OAuthService) {}

@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { GetUserClaimsUseCase } from 'src/application/usecases/role/get-user-claims.usecase';
+import { GetUserClaimsUseCase } from 'src/application/usecases/role/get-user-claim.usecase';
 import { User } from 'src/domain/entities/user.entity';
 
 export const PERMISSION_KEY = 'permission';

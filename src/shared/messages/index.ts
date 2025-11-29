@@ -1,18 +1,19 @@
-export * from './success.messages';
-export * from './error.messages';
-export * from './info.messages';
-export * from './repository.messages';
-export * from './auth.messages';
-export * from './validation.messages';
+export * from './success.message';
+export * from './error.message';
+export * from './info.message';
+export * from './repository.message';
+export * from './auth.message';
+export * from './validation.message';
 
 // Combined MESSAGES object for backward compatibility
-import { SUCCESS_MESSAGES } from './success.messages';
-import { ERROR_MESSAGES } from './error.messages';
-import { INFO_MESSAGES } from './info.messages';
+import { SUCCESS_MESSAGES } from './success.message';
+import { ERROR_MESSAGES } from './error.message';
+import { INFO_MESSAGES } from './info.message';
 import { USER_MESSAGES } from './user.message';
-import { AUTH_MESSAGES } from './auth.messages';
-import { REPOSITORY_MESSAGES } from './repository.messages';
-import { VALIDATION_MESSAGES } from './validation.messages';
+import { AUTH_MESSAGES } from './auth.message';
+import { REPOSITORY_MESSAGES } from './repository.message';
+import { VALIDATION_MESSAGES } from './validation.message';
+import { USER_ROLE_MESSAGES } from './user-role.message';
 
 export const MESSAGES = {
   ...VALIDATION_MESSAGES,
@@ -22,6 +23,7 @@ export const MESSAGES = {
   ...INFO_MESSAGES,
   ...USER_MESSAGES,
   ...REPOSITORY_MESSAGES,
+  ...USER_ROLE_MESSAGES,
 } as const;
 
 export type MessageKey = keyof typeof MESSAGES;

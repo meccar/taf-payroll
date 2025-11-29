@@ -15,7 +15,7 @@ import {
   AcceptedOAuthProvider,
 } from '../../shared/constants/oauth.constants';
 import { generatePasetoToken } from '../../shared/utils/paseto.util';
-import { AUTH_MESSAGES } from '../../shared/messages/auth.messages';
+import { AUTH_MESSAGES } from '../../shared/messages/auth.message';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 export interface OAuthUser {

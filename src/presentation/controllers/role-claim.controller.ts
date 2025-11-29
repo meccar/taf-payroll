@@ -11,14 +11,21 @@ import {
   PermissionGuard,
   RequirePermission,
 } from '../decorators/permission.decorator';
-import { ClaimDto, PermissionDto } from 'src/shared/dtos';
+import {
+  ClaimDto,
+  MessageResponseDto,
+  PermissionDto,
+  RoleClaimResponseDto,
+} from 'src/shared/dtos';
 import {
   AddPermissionToRoleUseCase,
   CreateRoleClaimUseCase,
   GetRoleClaimUseCase,
 } from 'src/application/usecases';
+import { AuthGuard } from '../guards';
 
 @Controller('role')
+@UseGuards(AuthGuard)
 @UseGuards(PermissionGuard)
 export class RoleController {
   constructor(
@@ -29,13 +36,18 @@ export class RoleController {
 
   @Get(':roleId/claims')
   @RequirePermission('role.manage')
-  async getRoleClaim(@Param('roleId') roleId: string) {
-    return this.getRoleClaimUseCase.execute(roleId);
+  async getRoleClaim(
+    @Param('roleId') roleId: string,
+  ): Promise<RoleClaimResponseDto[]> {
+    return await this.getRoleClaimUseCase.execute(roleId);
   }
 
   @Post(':roleId/claims')
   @RequirePermission('role.manage')
-  async addClaim(@Param('roleId') roleId: string, @Body() claim: ClaimDto) {
+  async addClaim(
+    @Param('roleId') roleId: string,
+    @Body() claim: ClaimDto,
+  ): Promise<MessageResponseDto> {
     return this.createRoleClaimUseCase.execute(roleId, claim);
   }
 
@@ -44,7 +56,7 @@ export class RoleController {
   async setRolePermission(
     @Param('roleId') roleId: string,
     @Body() permissions: PermissionDto[],
-  ) {
+  ): Promise<MessageResponseDto> {
     return this.addPermissionToRoleUseCase.execute(roleId, permissions);
   }
 }

@@ -3,6 +3,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Transaction } from 'sequelize';
 import { UserRole } from '../../domain/entities';
 import { BaseService } from './base.service';
+import { MESSAGES } from 'src/shared/messages';
+import { DeleteResult } from 'src/domain/types';
 
 @Injectable()
 export class UserRoleService extends BaseService<UserRole> {
@@ -24,7 +26,7 @@ export class UserRoleService extends BaseService<UserRole> {
       transaction,
     });
 
-    if (existing) return existing;
+    if (existing) throw new BadRequestException(MESSAGES.ERR_VALIDATION_FAILED);
 
     const result = await this.create(
       { userId, roleId },
@@ -32,7 +34,8 @@ export class UserRoleService extends BaseService<UserRole> {
       transaction,
     );
 
-    if (!result) throw new BadRequestException('Failed to add user to role');
+    if (!result)
+      throw new BadRequestException(MESSAGES.ERR_FAILED_TO_CREATE_USER_ROLE);
     return result.entity;
   }
 
@@ -40,26 +43,52 @@ export class UserRoleService extends BaseService<UserRole> {
     userId: string,
     roleId: string,
     transaction?: Transaction,
-  ): Promise<boolean> {
-    // Overriding delete logic for composite key
-    const deleted = await UserRole.destroy({
+  ): Promise<DeleteResult> {
+    return await this.delete({
       where: { userId, roleId },
       transaction,
     });
-    return deleted > 0;
   }
 
-  async getRolesForUser(userId: string): Promise<UserRole[]> {
+  public async getAllUserRoles(): Promise<UserRole[]> {
+    return this.findAll();
+  }
+
+  public async getRolesForUser(userId: string): Promise<UserRole[]> {
     return this.findAll({
       where: { userId },
       include: ['role'],
     });
   }
 
-  async getUsersInRole(roleId: string): Promise<UserRole[]> {
+  public async updateUserRole(
+    userId: string,
+    roleId: string,
+    transaction?: Transaction,
+  ): Promise<UserRole> {
+    const result = await this.update(
+      roleId,
+      { roleId, userId },
+      undefined,
+      transaction,
+    );
+
+    if (!result) throw new BadRequestException(MESSAGES.ERR_UPDATE_FAILED);
+
+    return result.entity;
+  }
+
+  async getUsersByRole(roleId: string): Promise<UserRole[]> {
     return this.findAll({
       where: { roleId },
       include: ['user'],
+    });
+  }
+
+  async getRolesByUser(userId: string): Promise<UserRole[]> {
+    return this.findAll({
+      where: { userId },
+      include: ['role'],
     });
   }
 }

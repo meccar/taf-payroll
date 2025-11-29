@@ -14,7 +14,7 @@ import {
   UserLogin,
   UserToken,
 } from '../../domain/entities';
-import { AUTH_MESSAGES } from '../../shared/messages/auth.messages';
+import { AUTH_MESSAGES } from '../../shared/messages/auth.message';
 import { generatePasetoToken } from '../../shared/utils/paseto.util';
 import { CreateResult, UpdateResult } from 'src/domain/types';
 import { UserTokenService } from './user-token.service';

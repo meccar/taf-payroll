@@ -20,8 +20,6 @@ import {
   ResendConfirmationUseCase,
   Verify2FAUseCase,
   OAuthCallbackUseCase,
-  OAuthValidateProviderUseCase,
-  OAuthGetCallbackErrorUseCase,
 } from './usecases';
 
 @Module({
@@ -39,9 +37,7 @@ import {
     // Use Cases
     CreateUserUseCase,
     LoginUseCase,
-    OAuthValidateProviderUseCase,
     OAuthCallbackUseCase,
-    OAuthGetCallbackErrorUseCase,
     ForgotPasswordUseCase,
     ResetPasswordUseCase,
     ConfirmEmailUseCase,
@@ -53,9 +49,7 @@ import {
   exports: [
     CreateUserUseCase,
     LoginUseCase,
-    OAuthValidateProviderUseCase,
     OAuthCallbackUseCase,
-    OAuthGetCallbackErrorUseCase,
     ForgotPasswordUseCase,
     ResetPasswordUseCase,
     ConfirmEmailUseCase,

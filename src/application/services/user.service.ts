@@ -83,6 +83,33 @@ export class UserService extends BaseService<User> {
     return result;
   }
 
+  async createOAuthUser(
+    user: Partial<User>,
+    transaction?: Transaction,
+  ): Promise<CreateResult<User>> {
+    let existingUser: User | null = null;
+
+    if (user.normalizedEmail)
+      existingUser = await this.findByEmail(user.normalizedEmail);
+
+    if (!existingUser && user.normalizedUserName)
+      existingUser = await this.findByUserName(user.normalizedUserName);
+
+    if (existingUser)
+      throw new BadRequestException(MESSAGES.ERR_USER_ALREADY_EXISTS);
+
+    user.securityStamp = generateSecurityStamp();
+    user.concurrencyStamp = generateConcurrencyStamp();
+
+    // Create user with transaction
+    const result = await this.create(user, undefined, transaction);
+
+    if (!result)
+      throw new BadRequestException(MESSAGES.ERR_FAILED_TO_CREATE_USER);
+
+    return result;
+  }
+
   async login(user: Partial<User>, transaction?: Transaction): Promise<string> {
     if (!user.normalizedEmail && !user.normalizedUserName)
       throw new BadRequestException(MESSAGES.ERR_EMAIL_OR_USERNAME_REQUIRED);

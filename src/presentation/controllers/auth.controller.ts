@@ -1,18 +1,7 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request, Response } from 'express';
 import { CurrentUser } from '../decorators';
-import * as oauthConstants from '../../shared/constants/oauth.constants';
-import { type OAuthUser } from 'src/application/services/oauth.service';
 import { User } from 'src/domain/entities';
 import {
   ConfirmEmailDto,
@@ -28,9 +17,6 @@ import {
   ConfirmEmailUseCase,
   ForgotPasswordUseCase,
   LoginUseCase,
-  OAuthCallbackUseCase,
-  OAuthGetCallbackErrorUseCase,
-  OAuthValidateProviderUseCase,
   ResendConfirmationUseCase,
   ResetPasswordUseCase,
   Verify2FAUseCase,
@@ -40,9 +26,6 @@ import {
 export class AuthController {
   constructor(
     private readonly loginUseCase: LoginUseCase,
-    private readonly oauthCallbackUseCase: OAuthCallbackUseCase,
-    private readonly oauthGetCallbackErrorUseCase: OAuthGetCallbackErrorUseCase,
-    private readonly oauthValidateProviderUseCase: OAuthValidateProviderUseCase,
     private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
     private readonly confirmEmailUseCase: ConfirmEmailUseCase,
@@ -55,36 +38,6 @@ export class AuthController {
     return {
       token: await this.loginUseCase.execute(loginDto),
     };
-  }
-
-  @Get('oauth/:provider')
-  @UseGuards(AuthGuard())
-  oauth(
-    @Param('provider') provider: oauthConstants.AcceptedOAuthProvider,
-  ): void {
-    this.oauthValidateProviderUseCase.execute(provider);
-  }
-
-  @Get('oauth/:provider/callback')
-  @UseGuards(AuthGuard())
-  async oauthCallback(
-    @Param('provider') provider: oauthConstants.AcceptedOAuthProvider,
-    @Req() req: Request & { user?: OAuthUser },
-    @Res() res: Response,
-  ): Promise<void> {
-    try {
-      const redirectUrl = await this.oauthCallbackUseCase.executeCallback(
-        req.user,
-        provider,
-      );
-
-      res.redirect(redirectUrl);
-    } catch (error: unknown) {
-      const errorRedirectUrl = this.oauthGetCallbackErrorUseCase.execute(
-        error as Error,
-      );
-      res.redirect(errorRedirectUrl);
-    }
   }
 
   @Post('forgot-password')

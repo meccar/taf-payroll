@@ -8,4 +8,8 @@ export class RoleMapper {
       name: entity.name,
     };
   }
+
+  static toArrayResponse(entities: Role[]): RoleResponseDto[] {
+    return entities.map((entity) => this.toResponse(entity));
+  }
 }

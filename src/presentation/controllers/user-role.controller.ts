@@ -21,7 +21,7 @@ import {
 } from 'src/application/usecases';
 import { MessageResponseDto, UserRoleResponseDto } from 'src/shared/dtos';
 import { UpdateUserRoleUseCase } from 'src/application/usecases/role/update-user-role.usecase';
-import { DeleteUserRoleUseCase } from 'src/application/usecases/role/delete-user-role.usecase';
+import { DeleteUserRoleUseCase } from 'src/application/usecases/user-role/delete-user-role.usecase';
 
 @Controller('user-role')
 @UseGuards(AuthGuard)

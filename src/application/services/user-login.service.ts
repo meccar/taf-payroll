@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FindOptions, Transaction } from 'sequelize';
-import { UserLogin } from '../../domain/entities';
+import { User, UserLogin } from '../../domain/entities';
 import { BaseService } from './base.service';
 
 @Injectable()
@@ -14,13 +14,24 @@ export class UserLoginService extends BaseService<UserLogin> {
     return UserLogin.name;
   }
 
+  async findByUserId(
+    userId: string,
+    options?: FindOptions,
+  ): Promise<UserLogin[]> {
+    return this.findAll({
+      where: { userId },
+      ...options,
+    });
+  }
+
   async findByLogin(
     loginProvider: string,
     providerKey: string,
     options?: FindOptions,
   ): Promise<UserLogin | null> {
-    return UserLogin.findOne({
+    return await this.findOne({
       where: { loginProvider, providerKey },
+      include: [User],
       ...options,
     });
   }
@@ -63,5 +74,18 @@ export class UserLoginService extends BaseService<UserLogin> {
       transaction,
     });
     return deleted > 0;
+  }
+
+  async hasProvider(userId: string, provider: string): Promise<boolean> {
+    const count = await this.count({
+      where: { userId, loginProvider: provider },
+    });
+    return count > 0;
+  }
+
+  async countByUserId(userId: string): Promise<number> {
+    return this.count({
+      where: { userId },
+    });
   }
 }

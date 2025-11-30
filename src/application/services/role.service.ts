@@ -15,6 +15,10 @@ export class RoleService extends BaseService<Role> {
     return Role.name;
   }
 
+  async getAll(): Promise<Role[]> {
+    return this.findAll();
+  }
+
   async findByName(name: string): Promise<Role | null> {
     return this.findOne({
       where: { normalizedName: name.toUpperCase() },

@@ -1,7 +1,7 @@
-import { PermissionDto } from "src/shared/dtos";
-import { RoleClaim } from "../entities";
-import { DeleteResult } from "../types";
-import { BasePort } from "./base.port";
+import { PermissionDto } from 'src/shared/dtos';
+import { RoleClaim } from '../entities';
+import { DeleteResult } from '../types';
+import { BasePort } from './base.port';
 
 export interface RoleClaimPort extends BasePort<RoleClaim> {
   getClaims(roleId: string): Promise<RoleClaim[]>;

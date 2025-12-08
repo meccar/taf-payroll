@@ -1,6 +1,6 @@
-import { UserClaim } from "../entities";
-import { DeleteResult } from "../types";
-import { BasePort } from "./base.port";
+import { UserClaim } from '../entities';
+import { DeleteResult } from '../types';
+import { BasePort } from './base.port';
 
 export interface UserClaimPort extends BasePort<UserClaim> {
   getClaims(userId: string): Promise<UserClaim[]>;

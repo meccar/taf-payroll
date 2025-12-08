@@ -1,6 +1,6 @@
-import { UserLogin } from "../entities";
-import { DeleteResult } from "../types";
-import { BasePort } from "./base.port";
+import { UserLogin } from '../entities';
+import { DeleteResult } from '../types';
+import { BasePort } from './base.port';
 
 export interface UserLoginPort extends BasePort<UserLogin> {
   findByUserId(userId: string, options?: any): Promise<UserLogin[]>;

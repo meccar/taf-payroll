@@ -1,6 +1,6 @@
-import { Role } from "../entities";
-import { CreateResult, UpdateResult } from "../types";
-import { BasePort } from "./base.port";
+import { Role } from '../entities';
+import { CreateResult, UpdateResult } from '../types';
+import { BasePort } from './base.port';
 
 export interface RolePort extends BasePort<Role> {
   getAll(): Promise<Role[]>;

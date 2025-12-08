@@ -73,3 +73,6 @@ clean:
 	$(COMPOSE_BIN) $(STG_FILES) down -v --remove-orphans || true
 	$(COMPOSE_BIN) $(PROD_FILES) down -v --remove-orphans || true
 
+lint:
+	yarn lint && yarn format && yarn build
+

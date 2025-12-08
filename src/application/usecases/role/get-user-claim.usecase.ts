@@ -5,6 +5,7 @@ import {
   UserClaimService,
   UserRoleService,
 } from '../../services';
+import { UserClaimDto } from 'src/shared/dtos';
 
 export class GetUserClaimsUseCase {
   constructor(
@@ -13,14 +14,12 @@ export class GetUserClaimsUseCase {
     private readonly userClaimService: UserClaimService,
   ) {}
 
-  async execute(
-    userId: string,
-  ): Promise<Array<{ type: string; value: string }>> {
+  async execute(userId: string): Promise<Array<UserClaimDto>> {
     const roles = await this.userRoleService.getRolesForUser(userId);
     if (!roles || roles.length === 0)
       throw new BadRequestException(MESSAGES.ERR_UNAUTHORIZED);
 
-    const claims: Array<{ type: string; value: string }> = [];
+    const claims: Array<UserClaimDto> = [];
 
     for (const role of roles) {
       const roleClaims = await this.roleClaimService.getClaims(role.id);
@@ -79,9 +78,7 @@ export class GetUserClaimsUseCase {
     return permissions.every((p) => userPermissions.includes(p));
   }
 
-  private deduplicateClaims(
-    claims: Array<{ type: string; value: string }>,
-  ): Array<{ type: string; value: string }> {
+  private deduplicateClaims(claims: Array<UserClaimDto>): Array<UserClaimDto> {
     const seen = new Set<string>();
     return claims.filter((claim) => {
       const key = `${claim.type}:${claim.value}`;

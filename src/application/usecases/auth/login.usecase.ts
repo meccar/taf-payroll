@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { LoginDto } from 'src/shared/dtos/auth/login.dto';
-import { Transactional } from 'src/infrastructure/database';
+import { Transactional } from 'src/infrastructure/database/sequelize';
 import { Transaction } from 'sequelize';
 import { UserService } from 'src/application/services';
 import { UserMapper } from 'src/application/mappers/user.mapper';

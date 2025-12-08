@@ -4,7 +4,7 @@ import { FindOptions, Transaction } from 'sequelize';
 import { UserToken } from '../../domain/entities';
 import { BaseService } from './base.service';
 import { generateEmailConfirmationToken } from 'src/shared/utils';
-import { CreateResult } from 'src/domain/types';
+import { CreateResult, DeleteResult } from 'src/domain/types';
 import { MESSAGES } from 'src/shared/messages';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class UserTokenService extends BaseService<UserToken> {
     name: string,
     options?: FindOptions,
   ): Promise<UserToken | null> {
-    return UserToken.findOne({
+    return this.findOne({
       where: { userId, loginProvider, name },
       ...options,
     });
@@ -33,7 +33,7 @@ export class UserTokenService extends BaseService<UserToken> {
     userId: string,
     options?: FindOptions,
   ): Promise<UserToken[]> {
-    return UserToken.findAll({
+    return this.findAll({
       where: { userId },
       ...options,
     });
@@ -48,7 +48,7 @@ export class UserTokenService extends BaseService<UserToken> {
     const token = generateEmailConfirmationToken();
     const existing = await this.getToken(userId, loginProvider, name);
     if (existing) {
-      await existing.update({ value: token }, { transaction });
+      await this.update(existing.id, { value: token }, undefined, transaction);
       return { entity: existing, transaction };
     }
 
@@ -74,11 +74,11 @@ export class UserTokenService extends BaseService<UserToken> {
     loginProvider: string,
     name: string,
     transaction?: Transaction,
-  ): Promise<boolean> {
-    const deleted = await UserToken.destroy({
-      where: { userId, loginProvider, name },
+  ): Promise<DeleteResult> {
+    return await this.delete(
+      { where: { userId, loginProvider, name } },
+      undefined,
       transaction,
-    });
-    return deleted > 0;
+    );
   }
 }

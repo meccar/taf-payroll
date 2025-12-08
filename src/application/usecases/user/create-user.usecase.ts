@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CreateUserDto } from 'src/shared/dtos/user/create-user.dto';
-import { Transactional } from 'src/infrastructure/database';
+import { Transactional } from 'src/infrastructure/database/sequelize';
 import { Transaction } from 'sequelize';
 import { MessageResponseDto } from 'src/shared/dtos/common/message-response.dto';
 import { MESSAGES } from 'src/shared/messages';

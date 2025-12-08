@@ -59,6 +59,7 @@ export class UserLoginService extends BaseService<UserLogin> {
       undefined,
       transaction,
     );
+
     if (!result) throw new BadRequestException('Failed to add login');
     return result.entity;
   }

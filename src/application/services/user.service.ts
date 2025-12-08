@@ -87,21 +87,9 @@ export class UserService extends BaseService<User> {
     user: Partial<User>,
     transaction?: Transaction,
   ): Promise<CreateResult<User>> {
-    let existingUser: User | null = null;
-
-    if (user.normalizedEmail)
-      existingUser = await this.findByEmail(user.normalizedEmail);
-
-    if (!existingUser && user.normalizedUserName)
-      existingUser = await this.findByUserName(user.normalizedUserName);
-
-    if (existingUser)
-      throw new BadRequestException(MESSAGES.ERR_USER_ALREADY_EXISTS);
-
     user.securityStamp = generateSecurityStamp();
     user.concurrencyStamp = generateConcurrencyStamp();
 
-    // Create user with transaction
     const result = await this.create(user, undefined, transaction);
 
     if (!result)

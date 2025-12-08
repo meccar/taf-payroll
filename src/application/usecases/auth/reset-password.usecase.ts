@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ResetPasswordDto } from 'src/shared/dtos/auth/reset-password.dto';
 import { MessageResponseDto } from 'src/shared/dtos/common/message-response.dto';
-import { Transactional } from 'src/infrastructure/database';
+import { Transactional } from 'src/infrastructure/database/sequelize';
 import { Transaction } from 'sequelize';
 import { MESSAGES } from 'src/shared/messages';
 import { UserService } from 'src/application/services';

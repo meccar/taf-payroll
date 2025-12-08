@@ -11,7 +11,7 @@ import {
   UserLogin,
   UserRole,
   UserToken,
-} from '../../domain/entities';
+} from '../../../domain/entities';
 
 @Module({
   imports: [

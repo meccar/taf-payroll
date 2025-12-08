@@ -6,6 +6,7 @@ import {
   AcceptedOAuthProvider,
   OAUTH_PROVIDERS,
 } from '../../shared/constants/oauth.constants';
+import { OAuthCallbackDto } from 'src/shared/dtos';
 
 export interface OAuthProfile {
   provider: AcceptedOAuthProvider;
@@ -55,11 +56,10 @@ export class OAuthService {
   validateProvider(
     provider: string,
   ): asserts provider is AcceptedOAuthProvider {
-    if (!ACCEPTED_OAUTH_PROVIDERS.includes(provider as AcceptedOAuthProvider)) {
+    if (!ACCEPTED_OAUTH_PROVIDERS.includes(provider as AcceptedOAuthProvider))
       throw new BadRequestException(
         `OAuth provider "${provider}" is not accepted. Accepted providers: ${ACCEPTED_OAUTH_PROVIDERS.join(', ')}`,
       );
-    }
   }
 
   /**
@@ -117,35 +117,40 @@ export class OAuthService {
   /**
    * Generate callback redirect URL (success)
    */
-  getCallbackRedirectUrl(token: string, isNewUser: boolean = false): string {
+  getCallbackRedirectUrl(
+    token: string,
+    isNewUser: boolean = false,
+  ): OAuthCallbackDto {
     const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? '';
-    return `${frontendUrl}/auth/callback?token=${token}&isNewUser=${isNewUser}`;
+    return {
+      redirectUrl: `${frontendUrl}/auth/callback?token=${token}&isNewUser=${isNewUser}`,
+    };
   }
 
   /**
    * Generate callback redirect URL (error)
    */
-  getCallbackErrorRedirectUrl(error: Error | string): string {
+  getCallbackErrorRedirectUrl(error: Error | string): OAuthCallbackDto {
     const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? '';
     const errorMessage =
       error instanceof Error ? error.message : 'Authentication failed';
-    return `${frontendUrl}/auth/callback?error=${encodeURIComponent(errorMessage)}`;
+    return {
+      redirectUrl: `${frontendUrl}/auth/callback?error=${encodeURIComponent(errorMessage)}`,
+    };
   }
 
   /**
    * Validate OAuth profile has required fields
    */
   validateProfile(profile: OAuthProfile): void {
-    if (!profile.email) {
+    if (!profile.email)
       throw new BadRequestException(
         `${profile.provider} account does not have an email address`,
       );
-    }
 
-    if (!profile.providerId) {
+    if (!profile.providerId)
       throw new BadRequestException(
         `${profile.provider} account does not have a valid ID`,
       );
-    }
   }
 }

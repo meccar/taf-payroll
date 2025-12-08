@@ -3,11 +3,15 @@ import { RoleClaimResponseDto } from 'src/shared/dtos';
 
 export class RoleClaimMapper {
   static toArrayResponse(entity: RoleClaim[]): RoleClaimResponseDto[] {
-    return entity.map((item) => ({
-      id: item.id,
-      roleId: item.roleId,
-      claimType: item.claimType || '',
-      claimValue: item.claimValue || '',
-    }));
+    return entity.map((item) => this.toResponse(item));
+  }
+
+  static toResponse(entity: RoleClaim): RoleClaimResponseDto {
+    return {
+      id: entity.id,
+      roleId: entity.roleId,
+      claimType: entity.claimType || '',
+      claimValue: entity.claimValue || '',
+    };
   }
 }

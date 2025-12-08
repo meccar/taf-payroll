@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import databaseConfig from './database/database.config';
+import databaseConfig from './database/sequelize/database.config';
 import authConfig from './auth/auth.config';
 import emailConfig from './email/email.config';
-import { DatabaseModule } from './database/database.module';
+import { DatabaseModule } from './database/sequelize/database.module';
 import { AuthModule } from './auth/auth.module';
 import { EmailModule } from './email/email.module';
 

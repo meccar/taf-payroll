@@ -7,3 +7,5 @@ export * from './resend-confirmation.dto';
 export * from './verify-2fa.dto';
 export * from './claim.dto';
 export * from './permission.dto';
+export * from './oauth-callback.dto';
+export * from './user-claim-response.dto';

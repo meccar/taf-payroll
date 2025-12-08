@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Verify2FADto } from 'src/shared/dtos/auth/verify-2fa.dto';
 import { MessageResponseDto } from 'src/shared/dtos/common/message-response.dto';
-import { Transactional } from 'src/infrastructure/database';
+import { Transactional } from 'src/infrastructure/database/sequelize';
 import { Transaction } from 'sequelize';
 import { User } from 'src/domain/entities';
 import { MESSAGES } from 'src/shared/messages';

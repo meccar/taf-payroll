@@ -4,9 +4,13 @@ import { PermissionDto } from 'src/shared/dtos';
 import { DeleteResult } from 'src/domain/types';
 import { BaseRepository } from './base.repository';
 import { RoleClaim } from '../models';
+import { RoleClaimAdapter } from 'src/domain/adapters';
 
 @Injectable()
-export class RoleClaimRepository extends BaseRepository<RoleClaim> {
+export class RoleClaimRepository
+  extends BaseRepository<RoleClaim>
+  implements RoleClaimAdapter
+{
   constructor() {
     super(RoleClaim);
   }

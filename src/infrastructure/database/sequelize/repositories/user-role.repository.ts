@@ -4,9 +4,13 @@ import { MESSAGES } from 'src/shared/messages';
 import { DeleteResult } from 'src/domain/types';
 import { BaseRepository } from './base.repository';
 import { UserRole } from '../models';
+import { UserRoleAdapter } from 'src/domain/adapters';
 
 @Injectable()
-export class UserRoleRepository extends BaseRepository<UserRole> {
+export class UserRoleRepository
+  extends BaseRepository<UserRole>
+  implements UserRoleAdapter
+{
   constructor() {
     super(UserRole);
   }

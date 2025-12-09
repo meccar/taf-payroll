@@ -6,16 +6,18 @@ import {
   ModelStatic,
 } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
-import { BasePort } from 'src/domain/ports/base.port';
+import { BaseAdapter } from 'src/domain/adapters';
 import {
   BulkCreateResult,
   BulkUpdateResult,
   CreateResult,
   DeleteResult,
   UpdateResult,
-} from 'src/domain/types/service.types';
+} from 'src/domain/types/service.type';
 
-export abstract class BaseRepository<T extends Model> implements BasePort<T> {
+export abstract class BaseRepository<T extends Model>
+  implements BaseAdapter<T>
+{
   protected constructor(
     protected readonly model: ModelStatic<T>,
     protected readonly sequelize?: Sequelize,

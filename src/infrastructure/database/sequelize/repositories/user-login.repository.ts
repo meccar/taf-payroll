@@ -3,9 +3,13 @@ import { FindOptions, Transaction } from 'sequelize';
 import { BaseRepository } from './base.repository';
 import { DeleteResult } from 'src/domain/types';
 import { User, UserLogin } from '../models';
+import { UserLoginAdapter } from 'src/domain/adapters';
 
 @Injectable()
-export class UserLoginRepository extends BaseRepository<UserLogin> {
+export class UserLoginRepository
+  extends BaseRepository<UserLogin>
+  implements UserLoginAdapter
+{
   constructor() {
     super(UserLogin);
   }

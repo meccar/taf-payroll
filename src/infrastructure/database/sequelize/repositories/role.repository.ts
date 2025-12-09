@@ -3,9 +3,13 @@ import { Transaction } from 'sequelize';
 import { BaseRepository } from './base.repository';
 import { CreateResult, UpdateResult } from 'src/domain/types';
 import { Role } from '../models';
+import { RoleAdapter } from 'src/domain/adapters';
 
 @Injectable()
-export class RoleRepository extends BaseRepository<Role> {
+export class RoleRepository
+  extends BaseRepository<Role>
+  implements RoleAdapter
+{
   constructor() {
     super(Role);
   }

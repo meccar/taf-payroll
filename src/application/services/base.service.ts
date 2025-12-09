@@ -19,7 +19,7 @@ import {
   CreateResult,
   DeleteResult,
   UpdateResult,
-} from 'src/domain/types/service.types';
+} from 'src/domain/types/service.type';
 
 export abstract class BaseService<T extends Model> {
   protected constructor(

@@ -5,9 +5,13 @@ import { CreateResult, DeleteResult } from 'src/domain/types';
 import { MESSAGES } from 'src/shared/messages';
 import { BaseRepository } from './base.repository';
 import { UserToken } from '../models';
+import { UserTokenAdapter } from 'src/domain/adapters';
 
 @Injectable()
-export class UserTokenRepository extends BaseRepository<UserToken> {
+export class UserTokenRepository
+  extends BaseRepository<UserToken>
+  implements UserTokenAdapter
+{
   constructor() {
     super(UserToken);
   }

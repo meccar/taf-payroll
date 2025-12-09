@@ -3,9 +3,13 @@ import { Transaction } from 'sequelize';
 import { BaseRepository } from './base.repository';
 import { DeleteResult } from 'src/domain/types';
 import { UserClaim } from '../models';
+import { UserClaimAdapter } from 'src/domain/adapters';
 
 @Injectable()
-export class UserClaimRepository extends BaseRepository<UserClaim> {
+export class UserClaimRepository
+  extends BaseRepository<UserClaim>
+  implements UserClaimAdapter
+{
   constructor() {
     super(UserClaim);
   }

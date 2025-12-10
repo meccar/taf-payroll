@@ -11,8 +11,11 @@ export abstract class BaseModel extends Model {
   declare id: string;
 
   @Column({ field: 'created_by', allowNull: true })
-  declare createdBy?: string;
+  declare createdBy: string;
 
   @Column({ field: 'updated_by', allowNull: true })
-  declare updatedBy?: string;
+  declare updatedBy: string;
+
+  @Column({ field: 'deleted_at', allowNull: true })
+  declare deletedAt: Date | null;
 }

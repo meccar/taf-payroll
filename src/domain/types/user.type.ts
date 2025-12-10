@@ -14,3 +14,8 @@ export interface IUserType {
   lockoutEnabled: boolean;
   accessFailedCount: number;
 }
+
+export type IUserCreateType = Omit<
+  IUserType,
+  'normalizedUserName' | 'normalizedEmail'
+>;

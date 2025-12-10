@@ -5,13 +5,14 @@ import { UserService } from '../../services';
 import { Transactional } from 'src/infrastructure/database/sequelize';
 import { Transaction } from 'sequelize';
 import { MESSAGES } from 'src/shared/messages';
-import { UserTokenAdapter } from 'src/domain/adapters';
+import { UserAdapter, UserTokenAdapter } from 'src/domain/adapters';
 
 @Injectable()
 export class ConfirmEmailUseCase {
   constructor(
     private readonly userService: UserService,
     private readonly userTokenAdapter: UserTokenAdapter,
+    private readonly userAdapter: UserAdapter,
   ) {}
 
   @Transactional()

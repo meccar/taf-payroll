@@ -13,7 +13,7 @@ import { UserRole } from './user-role.model';
 import { UserClaim } from './user-claim.model';
 import { UserLogin } from './user-login.model';
 import { UserToken } from './user-token.model';
-import { IUserType } from 'src/domain/types';
+import { IUser } from 'src/domain/entities';
 
 type UserClaimInstance = InstanceType<typeof UserClaim>;
 type UserLoginInstance = InstanceType<typeof UserLogin>;
@@ -23,24 +23,23 @@ type RoleInstance = InstanceType<typeof Role>;
 @Table({
   tableName: 'users',
   timestamps: true,
-  paranoid: true,
 })
-export class User extends BaseModel implements IUserType {
+export class User extends BaseModel implements IUser {
   @AllowNull(true)
   @Column({ type: DataType.STRING(256) })
-  declare userName?: string | null;
+  declare userName: string | null;
 
   @AllowNull(true)
   @Column({ type: DataType.STRING(256) })
-  declare normalizedUserName?: string | null;
+  declare normalizedUserName: string | null;
 
   @AllowNull(true)
   @Column({ type: DataType.STRING(256) })
-  declare email?: string | null;
+  declare email: string | null;
 
   @AllowNull(true)
   @Column({ type: DataType.STRING(256) })
-  declare normalizedEmail?: string | null;
+  declare normalizedEmail: string | null;
 
   @Default(false)
   @Column({ type: DataType.BOOLEAN })
@@ -48,19 +47,19 @@ export class User extends BaseModel implements IUserType {
 
   @AllowNull(true)
   @Column({ type: DataType.STRING })
-  declare passwordHash?: string | null;
+  declare passwordHash: string | null;
 
   @AllowNull(true)
   @Column({ type: DataType.STRING })
-  declare securityStamp?: string | null;
+  declare securityStamp: string | null;
 
   @AllowNull(true)
   @Column({ type: DataType.STRING })
-  declare concurrencyStamp?: string | null;
+  declare concurrencyStamp: string | null;
 
   @AllowNull(true)
   @Column({ type: DataType.STRING(32) })
-  declare phoneNumber?: string | null;
+  declare phoneNumber: string | null;
 
   @Default(false)
   @Column({ type: DataType.BOOLEAN })
@@ -72,7 +71,7 @@ export class User extends BaseModel implements IUserType {
 
   @AllowNull(true)
   @Column({ type: DataType.DATE })
-  declare lockoutEnd?: Date | null;
+  declare lockoutEnd: Date | null;
 
   @Default(false)
   @Column({ type: DataType.BOOLEAN })

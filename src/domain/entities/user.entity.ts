@@ -6,7 +6,7 @@ const UserName = z.string().trim().min(1).max(256).nullable();
 const Email = z.email().max(256).nullable();
 const PhoneNumber = z.string().max(32).nullable();
 
-export const UserSchema = z.object({
+export const UserEntity = z.object({
   id: ID,
   userName: UserName,
   normalizedUserName: UserName,
@@ -27,7 +27,7 @@ export const UserSchema = z.object({
   deletedAt: z.date().nullable(),
 });
 
-export type IUser = z.infer<typeof UserSchema>;
+export type IUser = z.infer<typeof UserEntity>;
 
 export class User implements IUser {
   id!: string;
@@ -52,7 +52,7 @@ export class User implements IUser {
   constructor(data: Partial<IUser>) {
     this.id = data.id ?? ulid();
 
-    const validated = UserSchema.parse({
+    const validated = UserEntity.parse({
       ...data,
       id: this.id,
     });
@@ -84,6 +84,6 @@ export class User implements IUser {
   }
 
   toObject(): IUser {
-    return UserSchema.parse(this);
+    return UserEntity.parse(this);
   }
 }

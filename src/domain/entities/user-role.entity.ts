@@ -1,34 +1,18 @@
-import {
-  Table,
-  Column,
-  DataType,
-  ForeignKey,
-  BelongsTo,
-  PrimaryKey,
-} from 'sequelize-typescript';
-import { User } from './user.entity';
-import { Role } from './role.entity';
-import { BaseEntity } from './base.entity';
+import { BaseEntity, BaseEntitySchema } from './base.entity';
+import { z } from 'zod';
 
-@Table({
-  tableName: 'user_roles',
-  timestamps: true,
-  paranoid: true,
-})
-export class UserRole extends BaseEntity {
-  @PrimaryKey
-  @ForeignKey(() => User)
-  @Column({ type: DataType.STRING(26), allowNull: false })
-  declare userId: string;
+export const UserRoleSchema = BaseEntitySchema.extend({
+  userId: z.ulid(),
+  roleId: z.ulid(),
+});
 
-  @PrimaryKey
-  @ForeignKey(() => Role)
-  @Column({ type: DataType.STRING(26), allowNull: false })
-  declare roleId: string;
+export type IUserRole = z.infer<typeof UserRoleSchema>;
 
-  @BelongsTo(() => User)
-  declare user: User;
+export class UserRole extends BaseEntity<IUserRole> implements IUserRole {
+  userId: string;
+  roleId: string;
 
-  @BelongsTo(() => Role)
-  declare role: Role;
+  constructor(data: Partial<IUserRole>) {
+    super(UserRoleSchema, data);
+  }
 }

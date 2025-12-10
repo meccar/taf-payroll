@@ -1,35 +1,22 @@
-import {
-  Table,
-  Column,
-  DataType,
-  ForeignKey,
-  BelongsTo,
-  PrimaryKey,
-} from 'sequelize-typescript';
-import { User } from './user.entity';
-import { BaseEntity } from './base.entity';
+import { BaseEntity, BaseEntitySchema } from './base.entity';
+import { z } from 'zod';
 
-@Table({
-  tableName: 'user_logins',
-  timestamps: true,
-  paranoid: true,
-})
-export class UserLogin extends BaseEntity {
-  @PrimaryKey
-  @Column({ type: DataType.STRING(128) })
-  declare loginProvider: string;
+export const UserLoginSchema = BaseEntitySchema.extend({
+  loginProvider: z.string().trim().min(1).max(128),
+  providerKey: z.string().trim().min(1).max(128),
+  providerDisplayName: z.string().nullable(),
+  userId: z.ulid(),
+});
 
-  @PrimaryKey
-  @Column({ type: DataType.STRING(128) })
-  declare providerKey: string;
+export type IUserLogin = z.infer<typeof UserLoginSchema>;
 
-  @Column({ type: DataType.STRING, allowNull: true })
-  declare providerDisplayName?: string;
+export class UserLogin extends BaseEntity<IUserLogin> implements IUserLogin {
+  loginProvider: string;
+  providerKey: string;
+  providerDisplayName: string | null;
+  userId: string;
 
-  @ForeignKey(() => User)
-  @Column({ type: DataType.STRING(26), allowNull: false })
-  declare userId: string;
-
-  @BelongsTo(() => User)
-  declare user: User;
+  constructor(data: Partial<IUserLogin>) {
+    super(UserLoginSchema, data);
+  }
 }

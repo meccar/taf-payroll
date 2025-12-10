@@ -1,13 +1,11 @@
 import { z } from 'zod';
-import { ulid } from 'ulid';
+import { BaseEntity, BaseEntitySchema } from './base.entity';
 
-const ID = z.ulid();
 const UserName = z.string().trim().min(1).max(256).nullable();
 const Email = z.email().max(256).nullable();
 const PhoneNumber = z.string().max(32).nullable();
 
-export const UserEntity = z.object({
-  id: ID,
+export const UserSchema = BaseEntitySchema.extend({
   userName: UserName,
   normalizedUserName: UserName,
   email: Email,
@@ -22,15 +20,11 @@ export const UserEntity = z.object({
   lockoutEnd: z.date().nullable(),
   lockoutEnabled: z.boolean().default(false),
   accessFailedCount: z.number().int().min(0).default(0),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
-  deletedAt: z.date().nullable(),
 });
 
-export type IUser = z.infer<typeof UserEntity>;
+export type IUser = z.infer<typeof UserSchema>;
 
-export class User implements IUser {
-  id!: string;
+export class User extends BaseEntity<IUser> implements IUser {
   userName!: string | null;
   normalizedUserName!: string | null;
   email!: string | null;
@@ -38,26 +32,16 @@ export class User implements IUser {
   emailConfirmed!: boolean;
   passwordHash!: string | null;
   securityStamp!: string | null;
-  concurrencyStamp!: string | null;
+  concurrencyStamp: string | null;
   phoneNumber!: string | null;
   phoneNumberConfirmed!: boolean;
   twoFactorEnabled!: boolean;
   lockoutEnd!: Date | null;
   lockoutEnabled!: boolean;
   accessFailedCount!: number;
-  createdAt?: Date;
-  updatedAt?: Date;
-  deletedAt!: Date | null;
 
   constructor(data: Partial<IUser>) {
-    this.id = data.id ?? ulid();
-
-    const validated = UserEntity.parse({
-      ...data,
-      id: this.id,
-    });
-
-    Object.assign(this, validated);
+    super(UserSchema, data);
   }
 
   isEmailVerified(): boolean {
@@ -72,6 +56,17 @@ export class User implements IUser {
     );
   }
 
+  canLogin(): boolean {
+    return this.isActive() && !this.isLockedOut() && this.isEmailVerified();
+  }
+
+  incrementFailedAccess(): void {
+    this.accessFailedCount++;
+    if (this.accessFailedCount >= 5) {
+      this.lockAccount(new Date(Date.now() + 30 * 60 * 1000));
+    }
+  }
+
   lockAccount(until: Date): void {
     this.lockoutEnabled = true;
     this.lockoutEnd = until;
@@ -83,7 +78,27 @@ export class User implements IUser {
     this.accessFailedCount = 0;
   }
 
-  toObject(): IUser {
-    return UserEntity.parse(this);
+  normalizeFields(): void {
+    this.normalizedUserName = this.userName?.toUpperCase() ?? null;
+    this.normalizedEmail = this.email?.toUpperCase() ?? null;
   }
+
+  updateEmail(newEmail: string): void {
+    this.email = newEmail;
+    this.normalizedEmail = newEmail.toUpperCase();
+    this.emailConfirmed = false;
+  }
+
+  override deactivate(): void {
+    super.deactivate();
+    this.lockoutEnabled = true;
+  }
+
+  override activate(): void {
+    super.activate();
+    this.unlockAccount();
+  }
+
+  static field = (...args: Parameters<typeof BaseEntity.fieldName>) =>
+    BaseEntity.fieldName<IUser>(...args);
 }

@@ -1,40 +1,20 @@
-import {
-  Table,
-  Column,
-  DataType,
-  AllowNull,
-  Default,
-  HasMany,
-  BelongsToMany,
-  Index,
-} from 'sequelize-typescript';
-import { BaseEntity } from './base.entity';
-import { RoleClaim } from './role-claim.entity';
-import { User } from './user.entity';
-import { UserRole } from './user-role.entity';
+import { BaseEntity, BaseEntitySchema } from './base.entity';
+import { z } from 'zod';
 
-@Table({
-  tableName: 'roles',
-  timestamps: true,
-  paranoid: true,
-})
-export class Role extends BaseEntity {
-  @AllowNull(false)
-  @Column({ type: DataType.STRING(256) })
-  declare name: string;
+export const RoleSchema = BaseEntitySchema.extend({
+  name: z.string().trim().min(1).max(256),
+  normalizedName: z.string().trim().min(1).max(256),
+  concurrencyStamp: z.string().nullable(),
+});
 
-  @AllowNull(false)
-  @Index({ unique: true })
-  @Column({ type: DataType.STRING(256) })
-  declare normalizedName: string;
+export type IRole = z.infer<typeof RoleSchema>;
 
-  @Default(null)
-  @Column({ type: DataType.STRING, allowNull: true })
-  declare concurrencyStamp?: string | null;
+export class Role extends BaseEntity<IRole> implements IRole {
+  name: string;
+  normalizedName: string;
+  concurrencyStamp: string | null;
 
-  @HasMany(() => RoleClaim)
-  declare claims: RoleClaim[];
-
-  @BelongsToMany(() => User, () => UserRole)
-  declare users: Array<User & { UserRole: UserRole }>;
+  constructor(data: Partial<IRole>) {
+    super(RoleSchema, data);
+  }
 }

@@ -1,91 +1,70 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-
 import { ulid } from 'ulid';
-import { DateUtils } from 'src/shared/utils';
 import z from 'zod';
 
-// export abstract class BaseEntity extends Model {
-//   @PrimaryKey
-//   @Column({
-//     type: DataTypes.STRING(26),
-//     defaultValue: () => ulid(),
-//   })
-//   declare id: string;
+export const BaseEntitySchema = z.object({
+  id: z.ulid(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  deletedAt: z.date().nullable().optional(),
+});
 
-//   @Column({ field: 'created_by', allowNull: true })
-//   declare createdBy?: string;
+export type IBaseEntity = z.infer<typeof BaseEntitySchema>;
 
-//   @Column({ field: 'updated_by', allowNull: true })
-//   declare updatedBy?: string;
-// }
+export abstract class BaseEntity<T extends IBaseEntity> implements IBaseEntity {
+  id!: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
 
-export const setEntityID = (entity: { _id?: string; id?: string }) => {
-  Object.assign(entity, { id: [entity?.id, entity?._id, null].find(Boolean) });
-  return entity;
-};
+  protected constructor(
+    protected readonly schema: z.ZodSchema<T>,
+    data?: Partial<T>,
+  ) {
+    this.id = data?.id ?? ulid();
 
-export interface IEntity {
-  id: string;
+    const validated = this.schema.parse({
+      ...data,
+      id: this.id,
+    } as T);
 
-  createdAt?: Date | null | undefined;
-
-  updatedAt?: Date | null | undefined;
-
-  deletedAt?: Date | null | undefined;
-}
-
-export const BaseEntity = <T>() => {
-  abstract class Entity implements IEntity {
-    protected constructor(readonly _schema: z.ZodSchema) {
-      if (!_schema) throw new Error('BaseEntity requires a schema');
-    }
-
-    readonly id!: string;
-
-    readonly createdAt?: Date | null | undefined;
-
-    readonly updatedAt?: Date | null | undefined;
-
-    deletedAt?: Date | null | undefined;
-
-    static nameOf = <D = keyof T>(name: keyof T) => name as D;
-
-    deactivated() {
-      this.deletedAt = DateUtils.getJSDate();
-    }
-
-    activated() {
-      Object.assign(this, { deletedAt: null });
-    }
-
-    validate<T>(entity: T): T {
-      setEntityID(entity as IEntity);
-      const parsed = this._schema.parse(entity) as T;
-      Object.assign(this, parsed);
-      return parsed;
-    }
-
-    assignIDWhenMissing() {
-      if (!this.id) {
-        const id = ulid();
-        Object.assign(this, { id });
-      }
-    }
-
-    toObject() {
-      return this._schema.safeParse(this).data as T;
-    }
-
-    toJson() {
-      return JSON.stringify(this.toObject());
-    }
-
-    clone(): this {
-      const obj = this.toObject();
-      return new (this.constructor as new (entity: T) => this)(obj);
-    }
+    Object.assign(this, validated);
   }
 
-  return Entity;
-};
+  deactivate(): void {
+    this.deletedAt = new Date();
+  }
+
+  activate(): void {
+    this.deletedAt = null;
+  }
+
+  isActive(): boolean {
+    return this.deletedAt === null || this.deletedAt === undefined;
+  }
+
+  isDeleted(): boolean {
+    return !this.isActive();
+  }
+
+  validate(): T {
+    const validated = this.schema.parse(this);
+    return validated;
+  }
+
+  toObject(): T {
+    return this.schema.parse(this);
+  }
+
+  toJson(): string {
+    return JSON.stringify(this.toObject());
+  }
+
+  clone(): this {
+    const obj = this.toObject();
+    return new (this.constructor as new (data: T) => this)(obj);
+  }
+
+  static fieldName<T>(name: keyof T): keyof T {
+    return name;
+  }
+}

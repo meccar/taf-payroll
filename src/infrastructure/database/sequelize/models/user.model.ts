@@ -15,14 +15,10 @@ import { UserLogin } from './user-login.model';
 import { UserToken } from './user-token.model';
 import { IUser } from 'src/domain/entities';
 
-type UserClaimInstance = InstanceType<typeof UserClaim>;
-type UserLoginInstance = InstanceType<typeof UserLogin>;
-type UserTokenInstance = InstanceType<typeof UserToken>;
-type RoleInstance = InstanceType<typeof Role>;
-
 @Table({
   tableName: 'users',
   timestamps: true,
+  paranoid: true,
 })
 export class User extends BaseModel implements IUser {
   @AllowNull(true)
@@ -84,17 +80,17 @@ export class User extends BaseModel implements IUser {
   @HasMany((): typeof UserClaim => {
     return UserClaim;
   })
-  declare claims?: UserClaimInstance[];
+  declare claims?: InstanceType<typeof UserClaim>[];
 
   @HasMany((): typeof UserLogin => {
     return UserLogin;
   })
-  declare logins?: UserLoginInstance[];
+  declare logins?: InstanceType<typeof UserLogin>[];
 
   @HasMany((): typeof UserToken => {
     return UserToken;
   })
-  declare tokens?: UserTokenInstance[];
+  declare tokens?: InstanceType<typeof UserToken>[];
 
   @BelongsToMany(
     (): typeof Role => {
@@ -104,5 +100,5 @@ export class User extends BaseModel implements IUser {
       return UserRole;
     },
   )
-  declare roles?: RoleInstance[];
+  declare roles?: InstanceType<typeof Role>[];
 }

@@ -10,9 +10,4 @@ export abstract class UserAdapter extends BaseAdapter<User> {
   abstract getClaims(userId: string, options?: any): Promise<UserClaim[]>;
   abstract getLogins(userId: string, options?: any): Promise<UserLogin[]>;
   abstract getTokens(userId: string, options?: any): Promise<UserToken[]>;
-  abstract setLockoutEnd(
-    userId: string,
-    lockoutEnd: Date | null,
-    transaction?: any,
-  ): Promise<User | null>;
 }

@@ -1,29 +1,20 @@
-import {
-  Table,
-  Column,
-  DataType,
-  ForeignKey,
-  BelongsTo,
-} from 'sequelize-typescript';
-import { User } from './user.entity';
-import { BaseEntity } from './base.entity';
+import { BaseEntity, BaseEntitySchema } from './base.entity';
+import { z } from 'zod';
 
-@Table({
-  tableName: 'user_claims',
-  timestamps: true,
-  paranoid: true,
-})
-export class UserClaim extends BaseEntity {
-  @ForeignKey(() => User)
-  @Column({ type: DataType.STRING(26), allowNull: false })
-  declare userId: string;
+export const UserClaimSchema = BaseEntitySchema.extend({
+  userId: z.ulid(),
+  claimType: z.string().nullable(),
+  claimValue: z.string().nullable(),
+});
 
-  @Column({ type: DataType.STRING, allowNull: true })
-  declare claimType?: string;
+export type IUserClaim = z.infer<typeof UserClaimSchema>;
 
-  @Column({ type: DataType.STRING, allowNull: true })
-  declare claimValue?: string;
+export class UserClaim extends BaseEntity<IUserClaim> implements IUserClaim {
+  userId: string;
+  claimType: string | null;
+  claimValue: string | null;
 
-  @BelongsTo(() => User)
-  declare user: User;
+  constructor(data: Partial<IUserClaim>) {
+    super(UserClaimSchema, data);
+  }
 }

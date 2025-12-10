@@ -1,8 +1,9 @@
 import { ulid } from 'ulid';
 import { DataTypes } from 'sequelize';
 import { Column, Model, PrimaryKey } from 'sequelize-typescript';
+import { IBaseEntity } from 'src/domain/entities';
 
-export abstract class BaseModel extends Model {
+export abstract class BaseModel extends Model implements IBaseEntity {
   @PrimaryKey
   @Column({
     type: DataTypes.STRING(26),
@@ -15,7 +16,4 @@ export abstract class BaseModel extends Model {
 
   @Column({ field: 'updated_by', allowNull: true })
   declare updatedBy: string;
-
-  @Column({ field: 'deleted_at', allowNull: true })
-  declare deletedAt: Date | null;
 }

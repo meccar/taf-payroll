@@ -1,36 +1,32 @@
-import { Column, DataType, Table } from 'sequelize-typescript';
-import { BaseEntity } from './base.entity';
+import { BaseEntity, BaseEntitySchema } from './base.entity';
+import { z } from 'zod';
 
-@Table({
-  tableName: 'profiles',
-  timestamps: true,
-  paranoid: true,
-})
-export class Profile extends BaseEntity {
-  @Column({ type: DataType.STRING(), allowNull: false })
+export const ProfileSchema = BaseEntitySchema.extend({
+  userId: z.ulid(),
+  firstName: z.string().trim().min(1).max(128),
+  lastName: z.string().trim().min(1).max(128),
+  phoneNumber: z.string().trim().min(1).max(128),
+  address: z.string().trim().min(1).max(128),
+  city: z.string().trim().min(1).max(128),
+  state: z.string().trim().min(1).max(128),
+  zipCode: z.string().trim().min(1).max(128),
+  country: z.string().trim().min(1).max(128),
+});
+
+export type IProfile = z.infer<typeof ProfileSchema>;
+
+export class Profile extends BaseEntity<IProfile> implements IProfile {
   declare userId: string;
-
-  @Column({ type: DataType.STRING() })
   declare firstName: string;
-
-  @Column({ type: DataType.STRING() })
   declare lastName: string;
-
-  @Column({ type: DataType.STRING() })
   declare phoneNumber: string;
-
-  @Column({ type: DataType.STRING() })
   declare address: string;
-
-  @Column({ type: DataType.STRING() })
   declare city: string;
-
-  @Column({ type: DataType.STRING() })
   declare state: string;
-
-  @Column({ type: DataType.STRING() })
   declare zipCode: string;
-
-  @Column({ type: DataType.STRING() })
   declare country: string;
+
+  constructor(data: Partial<IProfile>) {
+    super(ProfileSchema, data);
+  }
 }

@@ -1,23 +1,33 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Audit } from 'src/domain/entities/audit.entity';
-import { ulid } from 'ulid';
+import { BaseRepository } from './base.repository';
+import { Audit } from '../models';
+import { Audit as AuditEntity } from 'src/domain/entities';
+import { AuditAdapter } from 'src/domain/adapters';
 
 @Injectable()
-export class AuditService {
-  private readonly logger = new Logger(AuditService.name);
+export class AuditRepository
+  extends BaseRepository<Audit, AuditEntity>
+  implements AuditAdapter
+{
+  constructor(private readonly logger = new Logger(AuditRepository.name)) {
+    super(Audit, AuditEntity);
+  }
+
+  protected getEntityName(): string {
+    return Audit.name;
+  }
 
   async log(auditData: {
     entityName: string;
     entityId: string;
     action: 'CREATE' | 'UPDATE' | 'DELETE';
     userId?: string;
-    oldValue?: unknown;
-    newValue?: unknown;
-    metadata?: Record<string, unknown>;
+    oldValue?: Record<string, unknown> | null;
+    newValue?: Record<string, unknown> | null;
+    metadata: Record<string, unknown> | null;
   }): Promise<void> {
     try {
       const audit = Audit.build({
-        id: ulid(),
         entityName: auditData.entityName,
         entityId: auditData.entityId,
         action: auditData.action,
@@ -27,13 +37,17 @@ export class AuditService {
         timestamp: new Date(),
         metadata: auditData.metadata,
       });
+      const auditModel = audit as unknown as AuditEntity;
 
-      if (audit.action === 'UPDATE' && audit.getChangedFields().length === 0) {
+      if (
+        auditData.action === 'UPDATE' &&
+        auditModel.getChangedFields().length === 0
+      ) {
         this.logger.debug('No changes detected, skipping audit log');
         return;
       }
 
-      if (audit.isSensitiveChange()) {
+      if (auditModel.isSensitiveChange()) {
         this.logger.warn(
           `Sensitive data change detected for ${audit.entityName}:${audit.entityId}`,
         );

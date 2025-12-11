@@ -5,3 +5,4 @@ export * from './security.constants';
 export * from './provider.constants';
 export * from './auth.constants';
 export * from './oauth.constants';
+export * from './dependency.constant';

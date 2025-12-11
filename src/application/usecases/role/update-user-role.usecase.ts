@@ -1,12 +1,12 @@
-import { UserRoleService } from 'src/application/services';
+import { UserRoleAdapter } from 'src/domain/adapters';
 import { MessageResponseDto } from 'src/shared/dtos';
 import { MESSAGES } from 'src/shared/messages';
 
 export class UpdateUserRoleUseCase {
-  constructor(private readonly userRoleService: UserRoleService) {}
+  constructor(private readonly userRoleAdapter: UserRoleAdapter) {}
 
   async execute(userId: string, roleId: string): Promise<MessageResponseDto> {
-    await this.userRoleService.updateUserRole(userId, roleId);
+    await this.userRoleAdapter.updateUserRole(userId, roleId);
     return {
       message: MESSAGES.UPDATED_SUCCESS,
     };

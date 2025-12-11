@@ -6,3 +6,4 @@ export * from './user-login.adapter';
 export * from './user-role.adapter';
 export * from './user-token.adapter';
 export * from './user.adapter';
+export * from './audit.adapter';

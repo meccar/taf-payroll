@@ -1,13 +1,13 @@
 import { UserLoginMapper } from 'src/application/mappers/user-login.mapper';
-import { UserLoginService } from 'src/application/services';
+import { UserLoginAdapter } from 'src/domain/adapters';
 import { UserLoginResponseDto } from 'src/shared/dtos';
 
 export class GetAllUserLoginUseCase {
-  constructor(private readonly userLoginService: UserLoginService) {}
+  constructor(private readonly userLoginAdapter: UserLoginAdapter) {}
 
   async execute(userId: string): Promise<UserLoginResponseDto[]> {
     return UserLoginMapper.toArrayResponse(
-      await this.userLoginService.getLogins(userId),
+      await this.userLoginAdapter.getLogins(userId),
     );
   }
 }

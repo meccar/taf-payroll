@@ -1,11 +1,11 @@
 import { RoleMapper } from 'src/application/mappers/role.mapper';
-import { RoleService } from 'src/application/services';
+import { RoleAdapter } from 'src/domain/adapters';
 import { RoleResponseDto } from 'src/shared/dtos';
 
 export class GetAllRoleUseCase {
-  constructor(private readonly roleService: RoleService) {}
+  constructor(private readonly roleAdapter: RoleAdapter) {}
 
   async execute(): Promise<RoleResponseDto[]> {
-    return RoleMapper.toArrayResponse(await this.roleService.getAll());
+    return RoleMapper.toArrayResponse(await this.roleAdapter.getAll());
   }
 }

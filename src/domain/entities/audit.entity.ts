@@ -1,56 +1,41 @@
-import {
-  AllowNull,
-  Column,
-  DataType,
-  Default,
-  Table,
-} from 'sequelize-typescript';
-import { BaseEntity } from './base.entity';
+import { BaseEntity, BaseEntitySchema } from './base.entity';
+import { z } from 'zod';
 
 const asPlainRecord = (value: unknown): Record<string, unknown> | null => {
-  if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+  if (value !== null && typeof value === 'object' && !Array.isArray(value))
     return value as Record<string, unknown>;
-  }
 
   return null;
 };
 
 export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'SOFT_DELETE';
 
-@Table({
-  tableName: 'audits',
-  timestamps: true,
-  paranoid: true,
-})
-export class Audit extends BaseEntity {
-  @Column({ field: 'entity_name', type: DataType.STRING(128) })
+export const AuditSchema = BaseEntitySchema.extend({
+  entityName: z.string().max(128),
+  entityId: z.string().max(64),
+  action: z.enum(['CREATE', 'UPDATE', 'DELETE', 'SOFT_DELETE']),
+  userId: z.string().max(64).nullable(),
+  oldValue: z.record(z.string(), z.unknown()).nullable(),
+  newValue: z.record(z.string(), z.unknown()).nullable(),
+  timestamp: z.date(),
+  metadata: z.record(z.string(), z.unknown()).nullable(),
+});
+
+export type IAudit = z.infer<typeof AuditSchema>;
+
+export class Audit extends BaseEntity<IAudit> implements IAudit {
   declare entityName: string;
-
-  @Column({ field: 'entity_id', type: DataType.STRING(64) })
   declare entityId: string;
-
-  @Column({ type: DataType.STRING(16) })
   declare action: AuditAction;
-
-  @AllowNull(true)
-  @Column({ field: 'user_id', type: DataType.STRING(64) })
-  declare userId?: string;
-
-  @AllowNull(true)
-  @Column({ field: 'old_value', type: DataType.JSONB })
-  declare oldValue?: unknown;
-
-  @AllowNull(true)
-  @Column({ field: 'new_value', type: DataType.JSONB })
-  declare newValue?: unknown;
-
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE })
+  declare userId: string;
+  declare oldValue: Record<string, unknown> | null;
+  declare newValue: Record<string, unknown> | null;
   declare timestamp: Date;
+  declare metadata: Record<string, unknown> | null;
 
-  @AllowNull(true)
-  @Column({ type: DataType.JSONB })
-  declare metadata?: Record<string, unknown>;
+  constructor(data: Partial<IAudit>) {
+    super(AuditSchema, data);
+  }
 
   hasChanged(fieldName: string): boolean {
     const oldRecord = asPlainRecord(this.oldValue);

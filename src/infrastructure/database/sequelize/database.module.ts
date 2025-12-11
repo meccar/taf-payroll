@@ -2,21 +2,25 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { DatabaseConfig } from './database.config';
+
+import { SequelizeUnitOfWork } from './unit-of-work';
+import { UNIT_OF_WORK } from 'src/shared/constants';
 import {
+  Audit,
   Role,
   RoleClaim,
   User,
-  Audit,
   UserClaim,
   UserLogin,
   UserRole,
   UserToken,
-} from '../../../domain/entities';
+} from './models';
 
 @Module({
   imports: [
     SequelizeModule.forRootAsync({
       imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const dbConfig = configService.get<DatabaseConfig>('database');
         if (!dbConfig) throw new Error('Database configuration not found');
@@ -58,9 +62,14 @@ import {
           ],
         };
       },
-      inject: [ConfigService],
     }),
   ],
-  exports: [SequelizeModule],
+  providers: [
+    {
+      provide: UNIT_OF_WORK,
+      useClass: SequelizeUnitOfWork,
+    },
+  ],
+  exports: [SequelizeModule, UNIT_OF_WORK],
 })
 export class DatabaseModule {}

@@ -1,28 +1,28 @@
 import { BadRequestException } from '@nestjs/common';
 import { MESSAGES } from '../../../shared/messages';
-import {
-  RoleClaimService,
-  UserClaimService,
-  UserRoleService,
-} from '../../services';
 import { UserClaimDto } from 'src/shared/dtos';
+import {
+  RoleClaimAdapter,
+  UserClaimAdapter,
+  UserRoleAdapter,
+} from 'src/domain/adapters';
 
 export class GetUserClaimsUseCase {
   constructor(
-    private readonly userRoleService: UserRoleService,
-    private readonly roleClaimService: RoleClaimService,
-    private readonly userClaimService: UserClaimService,
+    private readonly userRoleAdapter: UserRoleAdapter,
+    private readonly roleClaimAdapter: RoleClaimAdapter,
+    private readonly userClaimAdapter: UserClaimAdapter,
   ) {}
 
   async execute(userId: string): Promise<Array<UserClaimDto>> {
-    const roles = await this.userRoleService.getRolesForUser(userId);
+    const roles = await this.userRoleAdapter.getRolesForUser(userId);
     if (!roles || roles.length === 0)
       throw new BadRequestException(MESSAGES.ERR_UNAUTHORIZED);
 
     const claims: Array<UserClaimDto> = [];
 
     for (const role of roles) {
-      const roleClaims = await this.roleClaimService.getClaims(role.id);
+      const roleClaims = await this.roleClaimAdapter.getClaims(role.id);
 
       if (roleClaims && roleClaims.length > 0) {
         roleClaims.forEach((claim) => {
@@ -35,7 +35,7 @@ export class GetUserClaimsUseCase {
       }
     }
 
-    const userClaims = await this.userClaimService.getClaims(userId);
+    const userClaims = await this.userClaimAdapter.getClaims(userId);
     if (userClaims && userClaims.length > 0) {
       userClaims.forEach((claim) => {
         if (claim.claimType && claim.claimValue)

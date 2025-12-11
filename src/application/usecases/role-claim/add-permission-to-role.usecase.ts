@@ -1,15 +1,15 @@
 import { MESSAGES } from 'src/shared/messages';
-import { RoleClaimService } from '../../services';
 import { MessageResponseDto, PermissionDto } from 'src/shared/dtos';
+import { RoleClaimAdapter } from 'src/domain/adapters';
 
 export class AddPermissionToRoleUseCase {
-  constructor(private readonly roleClaimService: RoleClaimService) {}
+  constructor(private readonly roleClaimAdapter: RoleClaimAdapter) {}
 
   async execute(
     roleId: string,
     permission: PermissionDto[],
   ): Promise<MessageResponseDto> {
-    await this.roleClaimService.addPermission(roleId, permission);
+    await this.roleClaimAdapter.addPermission(roleId, permission);
     return { message: MESSAGES.CREATED_SUCCESS };
   }
 }

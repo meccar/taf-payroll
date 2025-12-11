@@ -6,14 +6,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { BaseModel } from './base.model';
-
-const asPlainRecord = (value: unknown): Record<string, unknown> | null => {
-  if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-    return value as Record<string, unknown>;
-  }
-
-  return null;
-};
+import { IAudit } from 'src/domain/entities';
 
 export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'SOFT_DELETE';
 
@@ -22,7 +15,7 @@ export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'SOFT_DELETE';
   timestamps: true,
   paranoid: true,
 })
-export class Audit extends BaseModel {
+export class Audit extends BaseModel implements IAudit {
   @Column({ field: 'entity_name', type: DataType.STRING(128) })
   declare entityName: string;
 
@@ -34,15 +27,15 @@ export class Audit extends BaseModel {
 
   @AllowNull(true)
   @Column({ field: 'user_id', type: DataType.STRING(64) })
-  declare userId?: string;
+  declare userId: string;
 
   @AllowNull(true)
   @Column({ field: 'old_value', type: DataType.JSONB })
-  declare oldValue?: unknown;
+  declare oldValue: Record<string, unknown> | null;
 
   @AllowNull(true)
   @Column({ field: 'new_value', type: DataType.JSONB })
-  declare newValue?: unknown;
+  declare newValue: Record<string, unknown> | null;
 
   @Default(DataType.NOW)
   @Column({ type: DataType.DATE })
@@ -50,34 +43,5 @@ export class Audit extends BaseModel {
 
   @AllowNull(true)
   @Column({ type: DataType.JSONB })
-  declare metadata?: Record<string, unknown>;
-
-  hasChanged(fieldName: string): boolean {
-    const oldRecord = asPlainRecord(this.oldValue);
-    const newRecord = asPlainRecord(this.newValue);
-    if (!oldRecord || !newRecord) {
-      return true;
-    }
-
-    return oldRecord[fieldName] !== newRecord[fieldName];
-  }
-
-  getChangedFields(): string[] {
-    const oldRecord = asPlainRecord(this.oldValue);
-    const newRecord = asPlainRecord(this.newValue);
-    if (!oldRecord || !newRecord) {
-      return [];
-    }
-
-    return Object.keys(newRecord).filter(
-      (key) => oldRecord[key] !== newRecord[key],
-    );
-  }
-
-  isSensitiveChange(): boolean {
-    const sensitiveFields = ['password', 'ssn', 'creditCard', 'apiKey'];
-    return this.getChangedFields().some((field) =>
-      sensitiveFields.includes(field),
-    );
-  }
+  declare metadata: Record<string, unknown> | null;
 }

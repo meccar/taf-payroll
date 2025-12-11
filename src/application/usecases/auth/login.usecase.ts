@@ -1,41 +1,44 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { LoginDto } from 'src/shared/dtos/auth/login.dto';
-import { Transactional } from 'src/infrastructure/database/sequelize';
-import { Transaction } from 'sequelize';
 import { UserMapper } from 'src/application/mappers/user.mapper';
 import { UserAdapter } from 'src/domain/adapters';
 import { MESSAGES } from 'src/shared/messages';
 import { User } from 'src/domain/entities';
 import * as bcrypt from 'bcrypt';
-import { AUTH } from 'src/shared/constants';
+import { AUTH, UNIT_OF_WORK } from 'src/shared/constants';
 import { buildPasetoPayload, generatePasetoToken } from 'src/shared/utils';
 import { ConfigService } from '@nestjs/config';
+import type { IUnitOfWork } from 'src/domain/adapters/unit-of-work.adapter';
 
 @Injectable()
 export class LoginUseCase {
   constructor(
     private readonly userAdapter: UserAdapter,
     private readonly configService: ConfigService,
+    @Inject(UNIT_OF_WORK)
+    private readonly unitOfWork: IUnitOfWork,
   ) {}
 
-  @Transactional()
-  async execute(dto: LoginDto, transaction?: Transaction): Promise<string> {
-    const user = UserMapper.toEntity(dto);
+  async execute(dto: LoginDto): Promise<string> {
+    return this.unitOfWork.execute<string>(async () => {
+      const user = UserMapper.toEntity(dto);
 
-    this.validateLoginInput(user);
-    const existingUser = await this.findUser(user);
-    this.checkAccountLockout(existingUser);
+      this.validateLoginInput(user);
+      const existingUser = await this.findUser(user);
+      this.checkAccountLockout(existingUser);
 
-    await this.verifyPassword(user.passwordHash!, existingUser);
-    await this.resetFailedLoginAttempts(existingUser, transaction);
+      await this.verifyPassword(user.passwordHash!, existingUser);
+      await this.resetFailedLoginAttempts(existingUser);
 
-    this.validateEmailConfirmation(user, existingUser);
+      this.validateEmailConfirmation(user, existingUser);
 
-    return await this.generateAuthToken(existingUser);
+      return await this.generateAuthToken(existingUser);
+    });
   }
 
   private validateLoginInput(user: Partial<User>): void {
@@ -105,22 +108,15 @@ export class LoginUseCase {
     await this.userAdapter.update(user.id, updateData);
   }
 
-  private async resetFailedLoginAttempts(
-    user: User,
-    transaction?: Transaction,
-  ): Promise<void> {
+  private async resetFailedLoginAttempts(user: User): Promise<void> {
     const needsReset = user.accessFailedCount !== 0 || user.lockoutEnd !== null;
 
     if (!needsReset) return;
 
-    const result = await this.userAdapter.update(
-      user.id,
-      {
-        accessFailedCount: 0,
-        lockoutEnd: undefined,
-      },
-      transaction,
-    );
+    const result = await this.userAdapter.update(user.id, {
+      accessFailedCount: 0,
+      lockoutEnd: undefined,
+    });
 
     if (!result?.entity)
       throw new BadRequestException(MESSAGES.ERR_FAILED_TO_LOGIN);

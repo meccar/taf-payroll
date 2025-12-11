@@ -1,12 +1,12 @@
 import { ClaimDto, MessageResponseDto } from 'src/shared/dtos';
-import { RoleClaimService } from '../../services';
 import { MESSAGES } from 'src/shared/messages';
+import { RoleClaimAdapter } from 'src/domain/adapters';
 
 export class CreateRoleClaimUseCase {
-  constructor(private readonly roleClaimService: RoleClaimService) {}
+  constructor(private readonly roleClaimAdapter: RoleClaimAdapter) {}
 
   async execute(roleId: string, claim: ClaimDto): Promise<MessageResponseDto> {
-    await this.roleClaimService.addClaim(
+    await this.roleClaimAdapter.addClaim(
       roleId,
       claim.claimType,
       claim.claimValue,

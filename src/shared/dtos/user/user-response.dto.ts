@@ -12,19 +12,19 @@ export class UserResponseDto {
     example: 'john.doe',
     maxLength: 256,
   })
-  username?: string;
+  username: string | null;
 
   @ApiPropertyOptional({
     description: 'Email address of the user',
     example: 'john.doe@example.com',
     maxLength: 256,
   })
-  email?: string;
+  email: string | null;
 
   @ApiPropertyOptional({
     description: 'Phone number associated with the user',
     example: '+15551234567',
     maxLength: 32,
   })
-  phoneNumber?: string;
+  phoneNumber: string | null;
 }

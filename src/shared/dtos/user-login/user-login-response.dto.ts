@@ -9,7 +9,7 @@ export class UserLoginResponseDto {
   providerKey: string;
 
   @ApiProperty({ required: false })
-  providerDisplayName?: string;
+  providerDisplayName: string | null;
 
   @ApiProperty()
   user: UserResponseDto;

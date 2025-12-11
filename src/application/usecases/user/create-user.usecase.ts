@@ -5,15 +5,15 @@ import { Transactional } from 'src/infrastructure/database/sequelize';
 import { Transaction } from 'sequelize';
 import { MessageResponseDto } from 'src/shared/dtos/common/message-response.dto';
 import { MESSAGES } from 'src/shared/messages';
-import { UserService, UserTokenService } from 'src/application/services';
 import { UserMapper } from 'src/application/mappers/user.mapper';
 import { UserCreatedEvent } from 'src/domain/events/user.events';
+import { UserAdapter, UserTokenAdapter } from 'src/domain/adapters';
 
 @Injectable()
 export class CreateUserUseCase {
   constructor(
-    private readonly userService: UserService,
-    private readonly userTokenService: UserTokenService,
+    private readonly userAdapter: UserAdapter,
+    private readonly userTokenAdapter: UserTokenAdapter,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -22,12 +22,14 @@ export class CreateUserUseCase {
     dto: CreateUserDto,
     transaction?: Transaction,
   ): Promise<MessageResponseDto> {
-    const result = await this.userService.createUser(
+    const result = await this.userAdapter.create(
       UserMapper.toEntity(dto),
       transaction,
     );
 
-    const token = await this.userTokenService.setToken(
+    if (!result || !result.entity) throw new Error(MESSAGES.ERR_OCCURRED);
+
+    const token = await this.userTokenAdapter.setToken(
       result.entity.id,
       'email',
       'confirmationToken',

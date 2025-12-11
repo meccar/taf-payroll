@@ -1,15 +1,6 @@
 import { Module } from '@nestjs/common';
 import { InfrastructureModule } from '../infrastructure/infrastructure.module';
-import {
-  OAuthService,
-  RoleClaimService,
-  RoleService,
-  UserClaimService,
-  UserLoginService,
-  UserRoleService,
-  UserService,
-  UserTokenService,
-} from './services';
+import { OAuthService } from './services';
 import { EmailListener } from './listeners/email.listener';
 import {
   CreateUserUseCase,
@@ -26,13 +17,6 @@ import {
   imports: [InfrastructureModule],
   providers: [
     // Services
-    UserService,
-    RoleService,
-    UserClaimService,
-    RoleClaimService,
-    UserLoginService,
-    UserRoleService,
-    UserTokenService,
     OAuthService,
     // Use Cases
     CreateUserUseCase,

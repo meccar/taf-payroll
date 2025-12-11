@@ -1,5 +1,6 @@
 import { BaseEntity, BaseEntitySchema } from './base.entity';
 import { z } from 'zod';
+import { User } from './user.entity';
 
 export const UserLoginSchema = BaseEntitySchema.extend({
   loginProvider: z.string().trim().min(1).max(128),
@@ -15,6 +16,7 @@ export class UserLogin extends BaseEntity<IUserLogin> implements IUserLogin {
   providerKey: string;
   providerDisplayName: string | null;
   userId: string;
+  user: User;
 
   constructor(data: Partial<IUserLogin>) {
     super(UserLoginSchema, data);

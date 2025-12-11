@@ -6,30 +6,33 @@ import {
   UpdateResult,
 } from '../types';
 
-export abstract class BaseAdapter<T> {
-  abstract findAll(options?: any): Promise<T[]>;
-  abstract findById(id: string, options?: any): Promise<T | null>;
-  abstract findOne(options: any): Promise<T | null>;
+export abstract class BaseAdapter<EntityType> {
+  abstract findAll(options?: any): Promise<EntityType[]>;
+  abstract findById(id: string, options?: any): Promise<EntityType | null>;
+  abstract findOne(options: any): Promise<EntityType | null>;
   abstract create(
-    data: Partial<T>,
+    data: Partial<EntityType>,
     transaction?: any,
-  ): Promise<CreateResult<T> | null>;
+  ): Promise<CreateResult<EntityType> | null>;
   abstract update(
     id: string,
-    data: Partial<T>,
+    data: Partial<EntityType>,
     transaction?: any,
-  ): Promise<UpdateResult<T> | null>;
+  ): Promise<UpdateResult<EntityType> | null>;
   abstract delete(options?: any, transaction?: any): Promise<DeleteResult>;
   abstract count(options?: any): Promise<number>;
   abstract exists(options: any): Promise<boolean>;
-  abstract findByCondition(condition: any, options?: any): Promise<T | null>;
+  abstract findByCondition(
+    condition: any,
+    options?: any,
+  ): Promise<EntityType | null>;
   abstract bulkCreate(
-    data: Partial<T>[],
+    data: Partial<EntityType>[],
     transaction?: any,
-  ): Promise<BulkCreateResult<T>>;
+  ): Promise<BulkCreateResult<EntityType>>;
   abstract bulkUpdate(
-    updates: Array<{ id: string; data: Partial<T> }>,
+    updates: Array<{ id: string; data: Partial<EntityType> }>,
     transaction?: any,
-  ): Promise<BulkUpdateResult<T>>;
+  ): Promise<BulkUpdateResult<EntityType>>;
   abstract bulkDelete(condition: any, transaction?: any): Promise<DeleteResult>;
 }

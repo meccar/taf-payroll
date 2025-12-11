@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { HttpStatus } from '@nestjs/common';
 import { MESSAGES } from '../../messages';
-import type { ResponseStatus } from '../../types/response.types';
-import type { PaginationInput } from '../../types/response.types';
+import type { ResponseStatus } from '../../types/response.type';
+import type { PaginationInput } from '../../types/response.type';
 
 export class BaseResponseDto<T = unknown> {
   @ApiProperty({

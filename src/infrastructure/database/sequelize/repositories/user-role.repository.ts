@@ -4,15 +4,16 @@ import { MESSAGES } from 'src/shared/messages';
 import { DeleteResult } from 'src/domain/types';
 import { BaseRepository } from './base.repository';
 import { UserRole } from '../models';
+import { UserRole as UserRoleEntity } from 'src/domain/entities';
 import { UserRoleAdapter } from 'src/domain/adapters';
 
 @Injectable()
 export class UserRoleRepository
-  extends BaseRepository<UserRole>
+  extends BaseRepository<UserRole, UserRoleEntity>
   implements UserRoleAdapter
 {
   constructor() {
-    super(UserRole);
+    super(UserRole, UserRoleEntity);
   }
 
   protected getEntityName(): string {
@@ -23,7 +24,7 @@ export class UserRoleRepository
     userId: string,
     roleId: string,
     transaction?: Transaction,
-  ): Promise<UserRole> {
+  ): Promise<UserRoleEntity> {
     const existing = await this.findOne({
       where: { userId, roleId },
       transaction,
@@ -49,11 +50,11 @@ export class UserRoleRepository
     });
   }
 
-  public async getAllUserRoles(): Promise<UserRole[]> {
+  public async getAllUserRoles(): Promise<UserRoleEntity[]> {
     return this.findAll();
   }
 
-  public async getRolesForUser(userId: string): Promise<UserRole[]> {
+  public async getRolesForUser(userId: string): Promise<UserRoleEntity[]> {
     return this.findAll({
       where: { userId },
       include: ['role'],
@@ -64,7 +65,7 @@ export class UserRoleRepository
     userId: string,
     roleId: string,
     transaction?: Transaction,
-  ): Promise<UserRole> {
+  ): Promise<UserRoleEntity> {
     const result = await this.update(roleId, { roleId, userId }, transaction);
 
     if (!result) throw new BadRequestException(MESSAGES.ERR_UPDATE_FAILED);
@@ -72,14 +73,14 @@ export class UserRoleRepository
     return result.entity;
   }
 
-  async getUsersByRole(roleId: string): Promise<UserRole[]> {
+  async getUsersByRole(roleId: string): Promise<UserRoleEntity[]> {
     return this.findAll({
       where: { roleId },
       include: ['user'],
     });
   }
 
-  async getRolesByUser(userId: string): Promise<UserRole[]> {
+  async getRolesByUser(userId: string): Promise<UserRoleEntity[]> {
     return this.findAll({
       where: { userId },
       include: ['role'],

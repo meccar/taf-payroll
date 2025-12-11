@@ -8,17 +8,16 @@ import {
   UserToken as UserTokenEntity,
 } from 'src/domain/entities';
 import { BaseRepository } from './base.repository';
-import { FindOptions, Transaction, WhereOptions } from 'sequelize';
+import { FindOptions, WhereOptions } from 'sequelize';
 import { UserAdapter } from 'src/domain/adapters';
-import { AutoMapper } from 'src/infrastructure/database/sequelize/mapper/auto-mapper';
 
 @Injectable()
 export class UserRepository
-  extends BaseRepository<User>
+  extends BaseRepository<User, UserEntity>
   implements UserAdapter
 {
   constructor() {
-    super(User);
+    super(User, UserEntity);
   }
 
   protected getEntityName(): string {
@@ -26,30 +25,27 @@ export class UserRepository
   }
 
   async getUsers(options?: FindOptions): Promise<UserEntity[]> {
-    const models = await this.findAll(options);
-    return models.map((model) => AutoMapper.toEntity(UserEntity, model));
+    return await this.findAll(options);
   }
 
   async findByEmail(
     email: string,
     options?: FindOptions,
   ): Promise<UserEntity | null> {
-    const model = await this.findOne({
+    return await this.findOne({
       where: { normalizedEmail: email.toUpperCase() },
       ...options,
     });
-    return model ? AutoMapper.toEntity(UserEntity, model) : null;
   }
 
   async findByUsername(
     username: string,
     options?: FindOptions,
   ): Promise<UserEntity | null> {
-    const model = await this.findOne({
+    return await this.findOne({
       where: { normalizedUsername: username.toUpperCase() },
       ...options,
     });
-    return model ? AutoMapper.toEntity(UserEntity, model) : null;
   }
 
   async getRoles(userId: string, options?: FindOptions): Promise<RoleEntity[]> {
@@ -63,11 +59,11 @@ export class UserRepository
       ...options,
     });
     if (!user || !user.roles) return [];
-    return user.roles.map((role) => AutoMapper.toEntity(RoleEntity, role));
+    return user.roles;
   }
 
   async findByClaim(claim: WhereOptions): Promise<UserEntity | null> {
-    const model = await this.findOne({
+    return await this.findOne({
       include: [
         {
           model: UserClaim,
@@ -75,7 +71,6 @@ export class UserRepository
         },
       ],
     });
-    return model ? AutoMapper.toEntity(UserEntity, model) : null;
   }
 
   async getClaims(
@@ -93,9 +88,7 @@ export class UserRepository
 
     if (!user || !user.claims) return [];
 
-    return user.claims.map((claim) =>
-      AutoMapper.toEntity(UserClaimEntity, claim),
-    );
+    return user.claims;
   }
 
   async getLogins(
@@ -113,9 +106,7 @@ export class UserRepository
 
     if (!user || !user.logins) return [];
 
-    return user.logins.map((login) =>
-      AutoMapper.toEntity(UserLoginEntity, login),
-    );
+    return user.logins;
   }
 
   async getTokens(
@@ -133,8 +124,6 @@ export class UserRepository
 
     if (!user || !user.tokens) return [];
 
-    return user.tokens.map((token) =>
-      AutoMapper.toEntity(UserTokenEntity, token),
-    );
+    return user.tokens;
   }
 }

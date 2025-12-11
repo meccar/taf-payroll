@@ -5,15 +5,16 @@ import { CreateResult, DeleteResult } from 'src/domain/types';
 import { MESSAGES } from 'src/shared/messages';
 import { BaseRepository } from './base.repository';
 import { UserToken } from '../models';
+import { UserToken as UserTokenEntity } from 'src/domain/entities';
 import { UserTokenAdapter } from 'src/domain/adapters';
 
 @Injectable()
 export class UserTokenRepository
-  extends BaseRepository<UserToken>
+  extends BaseRepository<UserToken, UserTokenEntity>
   implements UserTokenAdapter
 {
   constructor() {
-    super(UserToken);
+    super(UserToken, UserTokenEntity);
   }
 
   protected getEntityName(): string {
@@ -25,8 +26,8 @@ export class UserTokenRepository
     loginProvider: string,
     name: string,
     options?: FindOptions,
-  ): Promise<UserToken | null> {
-    return this.findOne({
+  ): Promise<UserTokenEntity | null> {
+    return await this.findOne({
       where: { userId, loginProvider, name },
       ...options,
     });
@@ -35,7 +36,7 @@ export class UserTokenRepository
   async getTokensByUser(
     userId: string,
     options?: FindOptions,
-  ): Promise<UserToken[]> {
+  ): Promise<UserTokenEntity[]> {
     return this.findAll({
       where: { userId },
       ...options,
@@ -47,7 +48,7 @@ export class UserTokenRepository
     loginProvider: string,
     name: string,
     transaction?: Transaction,
-  ): Promise<CreateResult<UserToken>> {
+  ): Promise<CreateResult<UserTokenEntity>> {
     const token = generateEmailConfirmationToken();
     const existing = await this.getToken(userId, loginProvider, name);
     if (existing) {

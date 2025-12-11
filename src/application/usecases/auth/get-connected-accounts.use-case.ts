@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { UserLoginService, UserService } from 'src/application/services';
+import { UserAdapter, UserLoginAdapter } from 'src/domain/adapters';
+import { MESSAGES } from 'src/shared/messages';
 
 export interface ConnectedAccount {
   provider: string;
@@ -15,23 +16,20 @@ export interface ConnectedAccountsResult {
 @Injectable()
 export class GetConnectedAccountsUseCase {
   constructor(
-    private readonly userLoginService: UserLoginService,
-    private readonly userService: UserService,
+    private readonly userAdapter: UserAdapter,
+    private readonly userLoginAdapter: UserLoginAdapter,
   ) {}
 
   async execute(userId: string): Promise<ConnectedAccountsResult> {
-    const user = await this.userService.findById(userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    const user = await this.userAdapter.findById(userId);
+    if (!user) throw new NotFoundException(MESSAGES.ERR_USER_NOT_FOUND);
 
-    const logins = await this.userLoginService.findByUserId(userId);
+    const logins = await this.userLoginAdapter.findByUserId(userId);
     const hasPassword = !!user.passwordHash;
 
     const accounts = logins.map((login) => ({
       provider: login.loginProvider,
       displayName: login.providerDisplayName || login.loginProvider,
-      // Can remove if: has password OR has multiple logins
       canRemove: hasPassword || logins.length > 1,
     }));
 

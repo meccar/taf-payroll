@@ -5,7 +5,6 @@ import {
   Model,
   ModelStatic,
 } from 'sequelize';
-import { Sequelize } from 'sequelize-typescript';
 import { BaseAdapter } from 'src/domain/adapters';
 import {
   BulkCreateResult,
@@ -14,77 +13,79 @@ import {
   DeleteResult,
   UpdateResult,
 } from 'src/domain/types/service.type';
+import { AutoMapper } from '../mapper';
 
-export abstract class BaseRepository<T extends Model>
-  implements BaseAdapter<T>
+export abstract class BaseRepository<ModelType extends Model, EntityType>
+  implements BaseAdapter<EntityType>
 {
   protected constructor(
-    protected readonly model: ModelStatic<T>,
-    protected readonly sequelize?: Sequelize,
+    protected readonly model: ModelStatic<ModelType>,
+    private EntityClass: new (data: any) => EntityType,
   ) {}
 
   protected abstract getEntityName(): string;
 
-  protected ensureSequelizeInstance(): Sequelize {
-    if (!this.sequelize)
-      throw new Error(
-        'Sequelize instance is required for transaction support. Inject Sequelize in the service constructor.',
-      );
-    return this.sequelize;
-  }
-
-  async findAll(options?: FindOptions): Promise<T[]> {
-    return this.model.findAll({
+  async findAll(options?: FindOptions): Promise<EntityType[]> {
+    const models = await this.model.findAll({
       ...options,
       paranoid: options?.paranoid ?? true,
     });
+    return models.map((m) => AutoMapper.toEntity(this.EntityClass, m));
   }
 
-  async findById(id: string, options?: FindOptions): Promise<T | null> {
-    return this.model.findByPk(id, {
+  async findById(
+    id: string,
+    options?: FindOptions,
+  ): Promise<EntityType | null> {
+    const model = await this.model.findByPk(id, {
       ...options,
       paranoid: options?.paranoid ?? true,
     });
+    return model ? AutoMapper.toEntity(this.EntityClass, model) : null;
   }
 
-  async findOne(options: FindOptions): Promise<T | null> {
-    return this.model.findOne({
+  async findOne(options: FindOptions): Promise<EntityType | null> {
+    const model = await this.model.findOne({
       ...options,
       paranoid: options?.paranoid ?? true,
     });
+    return model ? AutoMapper.toEntity(this.EntityClass, model) : null;
   }
 
   async create(
-    data: Partial<T>,
+    data: Partial<EntityType>,
     transaction?: Transaction,
-  ): Promise<CreateResult<T> | null> {
-    const entity = await this.model.create(data as T['_creationAttributes'], {
-      transaction,
-    });
-    if (!entity) return null;
+  ): Promise<CreateResult<EntityType> | null> {
+    const model = await this.model.create(
+      data as ModelType['_creationAttributes'],
+      {
+        transaction,
+      },
+    );
+    if (!model) return null;
 
     return {
-      entity,
+      entity: AutoMapper.toEntity(this.EntityClass, model),
       transaction,
     };
   }
 
   async update(
     id: string,
-    data: Partial<T>,
+    data: Partial<EntityType>,
     transaction?: Transaction,
-  ): Promise<UpdateResult<T> | null> {
-    const oldEntity = await this.model.findByPk(id, {
+  ): Promise<UpdateResult<EntityType> | null> {
+    const oldModel = await this.model.findByPk(id, {
       paranoid: true,
       transaction,
     });
 
-    if (!oldEntity) return null;
+    if (!oldModel) return null;
 
-    const updatedEntity = await oldEntity.update(data, { transaction });
+    const updatedModel = await oldModel.update(data, { transaction });
 
     return {
-      entity: updatedEntity,
+      entity: AutoMapper.toEntity(this.EntityClass, updatedModel),
       transaction,
     };
   }
@@ -122,23 +123,24 @@ export abstract class BaseRepository<T extends Model>
   async findByCondition(
     condition: WhereOptions,
     options?: FindOptions,
-  ): Promise<T | null> {
-    return this.model.findOne({
+  ): Promise<EntityType | null> {
+    const model = await this.model.findOne({
       where: condition,
       ...options,
       paranoid: options?.paranoid ?? true,
     });
+    return model ? AutoMapper.toEntity(this.EntityClass, model) : null;
   }
 
   async bulkCreate(
-    dataArray: Partial<T>[],
+    dataArray: Partial<EntityType>[],
     transaction?: Transaction,
     options?: { ignoreDuplicates?: boolean },
-  ): Promise<BulkCreateResult<T>> {
+  ): Promise<BulkCreateResult<EntityType>> {
     if (dataArray.length === 0) return { entities: [], transaction };
 
-    const entities = await this.model.bulkCreate(
-      dataArray as T['_creationAttributes'][],
+    const models = await this.model.bulkCreate(
+      dataArray as ModelType['_creationAttributes'][],
       {
         transaction,
         returning: true,
@@ -146,16 +148,21 @@ export abstract class BaseRepository<T extends Model>
       },
     );
 
-    return { entities, transaction };
+    return {
+      entities: models.map((model) =>
+        AutoMapper.toEntity(this.EntityClass, model),
+      ),
+      transaction,
+    };
   }
 
   async bulkUpdate(
-    updates: Array<{ id: string; data: Partial<T> }>,
+    updates: Array<{ id: string; data: Partial<EntityType> }>,
     transaction?: Transaction,
-  ): Promise<BulkUpdateResult<T>> {
+  ): Promise<BulkUpdateResult<EntityType>> {
     if (updates.length === 0) return { entities: [], transaction };
 
-    const updatedEntities: T[] = [];
+    const updatedModels: ModelType[] = [];
 
     for (const { id, data } of updates) {
       const oldEntity = await this.model.findByPk(id, {
@@ -167,10 +174,15 @@ export abstract class BaseRepository<T extends Model>
 
       const updatedEntity = await oldEntity.update(data, { transaction });
 
-      updatedEntities.push(updatedEntity);
+      updatedModels.push(updatedEntity);
     }
 
-    return { entities: updatedEntities, transaction };
+    return {
+      entities: updatedModels.map((model) =>
+        AutoMapper.toEntity(this.EntityClass, model),
+      ),
+      transaction,
+    };
   }
 
   async bulkDelete(

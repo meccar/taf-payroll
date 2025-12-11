@@ -4,17 +4,18 @@ import { InjectConnection } from '@nestjs/sequelize';
 import { Transaction } from 'sequelize';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Transactional } from 'src/infrastructure/database/sequelize';
-import {
-  OAuthService,
-  UserLoginService,
-  UserService,
-} from 'src/application/services';
+import { OAuthService } from 'src/application/services';
 import type { AcceptedOAuthProvider } from 'src/shared/constants';
-import { generatePasetoToken } from 'src/shared/utils';
+import {
+  generateConcurrencyStamp,
+  generatePasetoToken,
+  generateSecurityStamp,
+} from 'src/shared/utils';
 import { User } from 'src/domain/entities';
 import { ConfigService } from '@nestjs/config';
 import { MESSAGES } from 'src/shared/messages';
 import { OAuthCallbackDto } from 'src/shared/dtos';
+import { UserAdapter, UserLoginAdapter } from 'src/domain/adapters';
 
 @Injectable()
 export class OAuthCallbackUseCase {
@@ -22,8 +23,9 @@ export class OAuthCallbackUseCase {
     @InjectConnection()
     private readonly oauthService: OAuthService,
     private readonly configService: ConfigService,
-    private readonly userService: UserService,
-    private readonly userLoginService: UserLoginService,
+    private readonly userAdapter: UserAdapter,
+    private readonly userLoginAdapter: UserLoginAdapter,
+
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -40,7 +42,7 @@ export class OAuthCallbackUseCase {
 
       this.oauthService.validateProfile(profile);
 
-      const existingLogin = await this.userLoginService.findByLogin(
+      const existingLogin = await this.userLoginAdapter.findByLogin(
         profile.provider,
         profile.providerId,
         { transaction },
@@ -50,16 +52,16 @@ export class OAuthCallbackUseCase {
       let isNewUser = false;
 
       if (existingLogin) {
-        user = await this.userService.findById(existingLogin.userId, {
+        user = await this.userAdapter.findById(existingLogin.userId, {
           transaction,
         });
       } else {
-        const existingUser = await this.userService.findByEmail(
+        const existingUser = await this.userAdapter.findByEmail(
           profile.email ?? '',
         );
 
         if (existingUser) {
-          await this.userLoginService.addLogin(
+          await this.userLoginAdapter.addLogin(
             existingUser.id,
             profile.provider,
             profile.providerId,
@@ -78,11 +80,18 @@ export class OAuthCallbackUseCase {
             normalizedEmail: profile.email?.toUpperCase(),
             emailConfirmed: profile.emailVerified,
           };
-          user = (await this.userService.createOAuthUser(userDto, transaction))
-            .entity;
+
+          userDto.securityStamp = generateSecurityStamp();
+          userDto.concurrencyStamp = generateConcurrencyStamp();
+
+          const result = await this.userAdapter.create(userDto, transaction);
+          if (!result)
+            throw new BadRequestException(MESSAGES.ERR_FAILED_TO_CREATE_USER);
+
+          user = result.entity;
           isNewUser = true;
 
-          await this.userLoginService.addLogin(
+          await this.userLoginAdapter.addLogin(
             user.id,
             profile.provider,
             profile.providerId,

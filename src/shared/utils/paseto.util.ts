@@ -37,13 +37,13 @@ export async function generatePasetoToken(
     infer: true,
   });
 
-  return pasetoV4.sign(payload, privateKey, {
+  return await pasetoV4.sign(payload, privateKey, {
     audience,
     issuer,
   });
 }
 
-function decodeKey(key: string): Uint8Array {
+export function decodeKey(key: string): Uint8Array {
   const attempts: BufferEncoding[] = ['base64url', 'base64'];
 
   for (const encoding of attempts) {
@@ -60,4 +60,21 @@ function decodeKey(key: string): Uint8Array {
   throw new InternalServerErrorException(
     'Unable to decode PASETO private key. Provide a valid base64/base64url string.',
   );
+}
+
+export function buildPasetoPayload(
+  userId: string,
+  email: string | null,
+  roleNames: string[],
+  policyClaims: string[],
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = {
+    sub: userId,
+  };
+
+  if (email) payload.email = email;
+  if (roleNames.length > 0) payload.roles = roleNames;
+  if (policyClaims.length > 0) payload.policies = policyClaims;
+
+  return payload;
 }

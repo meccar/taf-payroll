@@ -3,8 +3,11 @@ import { BaseAdapter } from './base.adapter';
 
 export abstract class UserAdapter extends BaseAdapter<User> {
   abstract getUsers(options?: any): Promise<User[]>;
-  abstract findByEmail(email: string, options: any): Promise<User | null>;
-  abstract findByUsername(username: string, options: any): Promise<User | null>;
+  abstract findByEmail(email: string, options?: any): Promise<User | null>;
+  abstract findByUsername(
+    username: string,
+    options?: any,
+  ): Promise<User | null>;
   abstract getRoles(userId: string, options?: any): Promise<Role[]>;
   abstract findByClaim(claim: any): Promise<User | null>;
   abstract getClaims(userId: string, options?: any): Promise<UserClaim[]>;

@@ -4,21 +4,22 @@ import { BaseRepository } from './base.repository';
 import { DeleteResult } from 'src/domain/types';
 import { UserClaim } from '../models';
 import { UserClaimAdapter } from 'src/domain/adapters';
+import { UserClaim as UserClaimEntity } from 'src/domain/entities';
 
 @Injectable()
 export class UserClaimRepository
-  extends BaseRepository<UserClaim>
+  extends BaseRepository<UserClaim, UserClaimEntity>
   implements UserClaimAdapter
 {
   constructor() {
-    super(UserClaim);
+    super(UserClaim, UserClaimEntity);
   }
 
   protected getEntityName(): string {
     return UserClaim.name;
   }
 
-  async getClaims(userId: string): Promise<UserClaim[]> {
+  async getClaims(userId: string): Promise<UserClaimEntity[]> {
     return this.findAll({
       where: { userId },
     });
@@ -29,7 +30,7 @@ export class UserClaimRepository
     claimType: string,
     claimValue: string,
     transaction?: Transaction,
-  ): Promise<UserClaim> {
+  ): Promise<UserClaimEntity> {
     const result = await this.create(
       {
         userId,

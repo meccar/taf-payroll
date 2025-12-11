@@ -4,14 +4,15 @@ import { BaseRepository } from './base.repository';
 import { DeleteResult } from 'src/domain/types';
 import { User, UserLogin } from '../models';
 import { UserLoginAdapter } from 'src/domain/adapters';
+import { UserLogin as UserLoginEntity } from 'src/domain/entities';
 
 @Injectable()
 export class UserLoginRepository
-  extends BaseRepository<UserLogin>
+  extends BaseRepository<UserLogin, UserLoginEntity>
   implements UserLoginAdapter
 {
   constructor() {
-    super(UserLogin);
+    super(UserLogin, UserLoginEntity);
   }
 
   protected getEntityName(): string {
@@ -21,7 +22,7 @@ export class UserLoginRepository
   async findByUserId(
     userId: string,
     options?: FindOptions,
-  ): Promise<UserLogin[]> {
+  ): Promise<UserLoginEntity[]> {
     return this.findAll({
       where: { userId },
       ...options,
@@ -32,7 +33,7 @@ export class UserLoginRepository
     loginProvider: string,
     providerKey: string,
     options?: FindOptions,
-  ): Promise<UserLogin | null> {
+  ): Promise<UserLoginEntity | null> {
     return await this.findOne({
       where: { loginProvider, providerKey },
       include: [User],
@@ -40,7 +41,7 @@ export class UserLoginRepository
     });
   }
 
-  async getLogins(userId: string): Promise<UserLogin[]> {
+  async getLogins(userId: string): Promise<UserLoginEntity[]> {
     return this.findAll({
       where: { userId },
     });
@@ -52,7 +53,7 @@ export class UserLoginRepository
     providerKey: string,
     providerDisplayName?: string,
     transaction?: Transaction,
-  ): Promise<UserLogin> {
+  ): Promise<UserLoginEntity> {
     const result = await this.create(
       {
         userId,

@@ -1,5 +1,9 @@
 import { z } from 'zod';
 import { BaseEntity, BaseEntitySchema } from './base.entity';
+import { Role } from './role.entity';
+import { UserClaim } from './user-claim.entity';
+import { UserLogin } from './user-login.entity';
+import { UserToken } from './user-token.entity';
 
 const UserName = z.string().trim().min(1).max(256).nullable();
 const Email = z.email().max(256).nullable();
@@ -30,7 +34,7 @@ export class User extends BaseEntity<IUser> implements IUser {
   email!: string | null;
   normalizedEmail!: string | null;
   emailConfirmed!: boolean;
-  passwordHash!: string | null;
+  passwordHash!: string;
   securityStamp!: string | null;
   concurrencyStamp: string | null;
   phoneNumber!: string | null;
@@ -39,6 +43,10 @@ export class User extends BaseEntity<IUser> implements IUser {
   lockoutEnd!: Date | null;
   lockoutEnabled!: boolean;
   accessFailedCount!: number;
+  roles: Role[];
+  claims: UserClaim[];
+  logins: UserLogin[];
+  tokens: UserToken[];
 
   constructor(data: Partial<IUser>) {
     super(UserSchema, data);

@@ -5,21 +5,22 @@ import { DeleteResult } from 'src/domain/types';
 import { BaseRepository } from './base.repository';
 import { RoleClaim } from '../models';
 import { RoleClaimAdapter } from 'src/domain/adapters';
+import { RoleClaim as RoleClaimEntity } from 'src/domain/entities';
 
 @Injectable()
 export class RoleClaimRepository
-  extends BaseRepository<RoleClaim>
+  extends BaseRepository<RoleClaim, RoleClaimEntity>
   implements RoleClaimAdapter
 {
   constructor() {
-    super(RoleClaim);
+    super(RoleClaim, RoleClaimEntity);
   }
 
   protected getEntityName(): string {
     return RoleClaim.name;
   }
 
-  async getClaims(roleId: string): Promise<RoleClaim[]> {
+  async getClaims(roleId: string): Promise<RoleClaimEntity[]> {
     return this.findAll({
       where: { roleId },
     });
@@ -30,7 +31,7 @@ export class RoleClaimRepository
     claimType: string,
     claimValue: string,
     transaction?: Transaction,
-  ): Promise<RoleClaim> {
+  ): Promise<RoleClaimEntity> {
     const result = await this.create(
       {
         roleId,
@@ -59,8 +60,8 @@ export class RoleClaimRepository
     roleId: string,
     permission: PermissionDto[],
     transaction?: Transaction,
-  ): Promise<RoleClaim[]> {
-    const claims: Partial<RoleClaim>[] = [];
+  ): Promise<RoleClaimEntity[]> {
+    const claims: Partial<RoleClaimEntity>[] = [];
 
     permission.forEach((p) => {
       if (p.permissions) {

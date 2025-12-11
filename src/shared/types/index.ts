@@ -1,2 +1,3 @@
-export * from './response.types';
-export * from './sort.types';
+export * from './response.type';
+export * from './sort.type';
+export * from './oauth.type';

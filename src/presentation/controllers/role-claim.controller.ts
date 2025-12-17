@@ -50,7 +50,7 @@ export class RoleClaimController {
     @Param('roleId') roleId: string,
     @Body() claim: ClaimDto,
   ): Promise<MessageResponseDto> {
-    return this.createRoleClaimUseCase.execute(roleId, claim);
+    return await this.createRoleClaimUseCase.execute(roleId, claim);
   }
 
   @Put(':roleId/permissions')
@@ -59,6 +59,6 @@ export class RoleClaimController {
     @Param('roleId') roleId: string,
     @Body() permissions: PermissionDto[],
   ): Promise<MessageResponseDto> {
-    return this.addPermissionToRoleUseCase.execute(roleId, permissions);
+    return await this.addPermissionToRoleUseCase.execute(roleId, permissions);
   }
 }

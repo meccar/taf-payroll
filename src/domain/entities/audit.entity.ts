@@ -8,12 +8,12 @@ const asPlainRecord = (value: unknown): Record<string, unknown> | null => {
   return null;
 };
 
-export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'SOFT_DELETE';
+export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE';
 
 export const AuditSchema = BaseEntitySchema.extend({
   entityName: z.string().max(128),
   entityId: z.string().max(64),
-  action: z.enum(['CREATE', 'UPDATE', 'DELETE', 'SOFT_DELETE']),
+  action: z.enum(['CREATE', 'UPDATE', 'DELETE']),
   userId: z.string().max(64).nullable(),
   oldValue: z.record(z.string(), z.unknown()).nullable(),
   newValue: z.record(z.string(), z.unknown()).nullable(),

@@ -28,7 +28,6 @@ export class LoginUseCase {
     return this.unitOfWork.execute<string>(async () => {
       const user = UserMapper.toEntity(dto);
 
-      this.validateLoginInput(user);
       const existingUser = await this.findUser(user);
       this.checkAccountLockout(existingUser);
 
@@ -41,24 +40,16 @@ export class LoginUseCase {
     });
   }
 
-  private validateLoginInput(user: Partial<User>): void {
-    if (!user.normalizedEmail && !user.normalizedUserName)
-      throw new BadRequestException(MESSAGES.ERR_EMAIL_OR_USERNAME_REQUIRED);
-
-    if (!user.passwordHash)
-      throw new BadRequestException(MESSAGES.ERR_PASSWORD_REQUIRED);
-  }
-
   private async findUser(user: Partial<User>): Promise<User> {
     let existingUser: User | null = null;
 
     if (user.normalizedEmail)
       existingUser = await this.userAdapter.findByEmail(user.normalizedEmail);
-
-    if (!existingUser && user.normalizedUserName)
+    else if (user.normalizedUserName)
       existingUser = await this.userAdapter.findByUsername(
         user.normalizedUserName,
       );
+    else throw new BadRequestException(MESSAGES.ERR_EMAIL_OR_USERNAME_REQUIRED);
 
     if (!existingUser)
       throw new UnauthorizedException(MESSAGES.ERR_UNAUTHORIZED);
@@ -85,7 +76,6 @@ export class LoginUseCase {
 
     if (isPasswordValid) return;
 
-    // Password invalid - handle failed attempts
     if (!user.lockoutEnabled)
       throw new UnauthorizedException(MESSAGES.ERR_UNAUTHORIZED);
 

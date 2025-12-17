@@ -8,7 +8,7 @@ import {
 import { BaseModel } from './base.model';
 import { IAudit } from 'src/domain/entities';
 
-export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'SOFT_DELETE';
+export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE';
 
 @Table({
   tableName: 'audits',

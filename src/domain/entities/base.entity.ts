@@ -1,5 +1,5 @@
 import { ulid } from 'ulid';
-import z from 'zod';
+import { z } from 'zod';
 
 export const BaseEntitySchema = z.object({
   id: z.ulid(),

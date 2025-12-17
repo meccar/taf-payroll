@@ -41,7 +41,7 @@ export class UserRoleController {
   async addToRole(
     @Body() body: { userId: string; roleId: string },
   ): Promise<MessageResponseDto> {
-    return this.addUserToRoleUseCase.execute(body.userId, body.roleId);
+    return await this.addUserToRoleUseCase.execute(body.userId, body.roleId);
   }
 
   @Put()
@@ -49,7 +49,7 @@ export class UserRoleController {
   async updateUserRole(
     @Body() body: { userId: string; roleId: string },
   ): Promise<MessageResponseDto> {
-    return this.updateUserRoleUseCase.execute(body.userId, body.roleId);
+    return await this.updateUserRoleUseCase.execute(body.userId, body.roleId);
   }
 
   @Delete()
@@ -57,7 +57,7 @@ export class UserRoleController {
   async removeFromRole(
     @Body() body: { userId: string; roleId: string },
   ): Promise<MessageResponseDto> {
-    return this.deleteUserRoleUseCase.execute(body.userId, body.roleId);
+    return await this.deleteUserRoleUseCase.execute(body.userId, body.roleId);
   }
 
   @Get()
@@ -71,7 +71,7 @@ export class UserRoleController {
   async getUsersByRole(
     @Query() query: { roleId: string },
   ): Promise<UserRoleResponseDto[]> {
-    return this.getUserByRoleUseCase.execute(query.roleId);
+    return await this.getUserByRoleUseCase.execute(query.roleId);
   }
 
   @Get('roles')
@@ -79,6 +79,6 @@ export class UserRoleController {
   async getRolesByUser(
     @Query() query: { userId: string },
   ): Promise<UserRoleResponseDto[]> {
-    return this.getRoleByUserUseCase.execute(query.userId);
+    return await this.getRoleByUserUseCase.execute(query.userId);
   }
 }

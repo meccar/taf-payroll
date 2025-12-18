@@ -1,12 +1,10 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../guards';
-import { AuthGuard as OAuthGuard } from '@nestjs/passport';
 import { UserClaimDto } from 'src/shared/dtos';
 import { GetUserClaimsUseCase } from 'src/application/usecases';
 
 @Controller('user-claim')
 @UseGuards(AuthGuard)
-@UseGuards(OAuthGuard)
 export class UserClaimController {
   constructor(private readonly getUserClaimsUseCase: GetUserClaimsUseCase) {}
 

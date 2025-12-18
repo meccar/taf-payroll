@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { Sequelize } from 'sequelize';
+import { InjectConnection } from '@nestjs/sequelize';
+import { Sequelize } from 'sequelize-typescript';
 import { IUnitOfWork } from 'src/domain/adapters/unit-of-work.adapter';
 
 @Injectable()
 export class SequelizeUnitOfWork implements IUnitOfWork {
-  constructor(private sequelize: Sequelize) {}
+  constructor(@InjectConnection() private readonly sequelize: Sequelize) {}
 
   async execute<T>(work: () => Promise<T>): Promise<T> {
     return this.sequelize.transaction(async () => {

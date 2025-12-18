@@ -6,6 +6,16 @@ import { DatabaseConfig } from './database.config';
 import { SequelizeUnitOfWork } from './unit-of-work';
 import { UNIT_OF_WORK } from 'src/shared/constants';
 import {
+  AuditAdapter,
+  RoleAdapter,
+  RoleClaimAdapter,
+  UserAdapter,
+  UserClaimAdapter,
+  UserLoginAdapter,
+  UserRoleAdapter,
+  UserTokenAdapter,
+} from 'src/domain/adapters';
+import {
   Audit,
   Role,
   RoleClaim,
@@ -15,6 +25,14 @@ import {
   UserRole,
   UserToken,
 } from './models';
+import { AuditRepository } from './repositories/audit.repository';
+import { RoleClaimRepository } from './repositories/role-claim.repository';
+import { RoleRepository } from './repositories/role.repository';
+import { UserClaimRepository } from './repositories/user-claim.repository';
+import { UserLoginRepository } from './repositories/user-login.repository';
+import { UserRepository } from './repositories/user.repository';
+import { UserRoleRepository } from './repositories/user-role.repository';
+import { UserTokenRepository } from './repositories/user-token.repository';
 
 @Module({
   imports: [
@@ -33,7 +51,7 @@ import {
           database: dbConfig.database,
           autoLoadModels: dbConfig.autoLoadModels,
           synchronize: dbConfig.synchronize,
-          logging: dbConfig.logging,
+          logging: false,
           pool: dbConfig.pool,
           define: {
             timestamps: true,
@@ -69,7 +87,34 @@ import {
       provide: UNIT_OF_WORK,
       useClass: SequelizeUnitOfWork,
     },
+    UserRepository,
+    RoleRepository,
+    UserRoleRepository,
+    RoleClaimRepository,
+    UserClaimRepository,
+    UserLoginRepository,
+    UserTokenRepository,
+    AuditRepository,
+    { provide: UserAdapter, useExisting: UserRepository },
+    { provide: RoleAdapter, useExisting: RoleRepository },
+    { provide: UserRoleAdapter, useExisting: UserRoleRepository },
+    { provide: RoleClaimAdapter, useExisting: RoleClaimRepository },
+    { provide: UserClaimAdapter, useExisting: UserClaimRepository },
+    { provide: UserLoginAdapter, useExisting: UserLoginRepository },
+    { provide: UserTokenAdapter, useExisting: UserTokenRepository },
+    { provide: AuditAdapter, useExisting: AuditRepository },
   ],
-  exports: [SequelizeModule, UNIT_OF_WORK],
+  exports: [
+    SequelizeModule,
+    UNIT_OF_WORK,
+    UserAdapter,
+    RoleAdapter,
+    UserRoleAdapter,
+    RoleClaimAdapter,
+    UserClaimAdapter,
+    UserLoginAdapter,
+    UserTokenAdapter,
+    AuditAdapter,
+  ],
 })
 export class DatabaseModule {}

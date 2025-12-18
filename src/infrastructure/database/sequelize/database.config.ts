@@ -1,5 +1,6 @@
 import { registerAs } from '@nestjs/config';
 import { Dialect } from 'sequelize';
+import util from 'node:util';
 
 export interface DatabaseConfig {
   dialect: Dialect;
@@ -31,7 +32,17 @@ export default registerAs<DatabaseConfig>('database', () => ({
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'taf_payroll',
   synchronize: process.env.DB_SYNCHRONIZE === 'true',
-  logging: process.env.DB_LOGGING === 'true' ? console.log : false,
+  logging:
+    process.env.DB_LOGGING === 'true'
+      ? (sql: unknown) => {
+          if (typeof sql === 'string') {
+            console.log(sql);
+            return;
+          }
+          void util;
+          return;
+        }
+      : false,
   autoLoadModels: true,
   synchronizeModels: false,
   pool: {

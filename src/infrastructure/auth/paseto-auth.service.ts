@@ -35,15 +35,16 @@ const pasetoV4 = V4 as {
 @Injectable()
 export class PasetoAuthService implements AuthService {
   private readonly logger = new Logger(PasetoAuthService.name);
-  private readonly publicKey: Uint8Array;
-  private readonly config: PasetoConfig;
+  private readonly publicKey?: Uint8Array;
+  private readonly config?: PasetoConfig;
 
   constructor(private readonly configService: ConfigService) {
     const authConfig = this.configService.get<AuthConfig>('auth');
     if (!authConfig?.paseto?.publicKey) {
-      throw new Error(
-        'Missing PASETO configuration. Ensure PASETO_PUBLIC_KEY is set.',
+      this.logger.warn(
+        'Missing PASETO configuration (PASETO_PUBLIC_KEY). Authentication will always fail until configured.',
       );
+      return;
     }
     this.config = authConfig.paseto;
     this.publicKey = PasetoAuthService.decodePublicKey(
@@ -56,6 +57,7 @@ export class PasetoAuthService implements AuthService {
     context: ExecutionContext,
   ): Promise<AuthenticatedUser | null> {
     if (!token) return null;
+    if (!this.publicKey || !this.config) return null;
 
     try {
       const validationOptions = this.resolveValidationOptions(context);

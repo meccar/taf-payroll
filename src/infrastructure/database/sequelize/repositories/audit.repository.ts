@@ -9,7 +9,9 @@ export class AuditRepository
   extends BaseRepository<Audit, AuditEntity>
   implements AuditAdapter
 {
-  constructor(private readonly logger = new Logger(AuditRepository.name)) {
+  private readonly logger = new Logger(AuditRepository.name);
+
+  constructor() {
     super(Audit, AuditEntity);
   }
 

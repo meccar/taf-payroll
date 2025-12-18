@@ -1,4 +1,5 @@
 export * from './base.repository';
+export * from './audit.repository';
 export * from './role-claim.repository';
 export * from './role.repository';
 export * from './user-claim.repository';

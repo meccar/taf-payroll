@@ -1,7 +1,7 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import type { Request, Response } from 'express';
 import { CurrentUser } from '../decorators';
+import { AuthGuard } from '../guards';
 import { User } from 'src/domain/entities';
 import {
   ConfirmEmailDto,
@@ -69,7 +69,7 @@ export class AuthController {
   }
 
   @Post('verify-2fa')
-  @UseGuards(AuthGuard())
+  @UseGuards(AuthGuard)
   async verify2FA(
     @CurrentUser() user: User | null,
     @Body() verify2FADto: Verify2FADto,

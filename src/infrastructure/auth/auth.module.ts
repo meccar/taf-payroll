@@ -13,7 +13,9 @@ import { AUTH_SERVICE_TOKEN } from '../../application/auth';
       provide: AUTH_SERVICE_TOKEN,
       useClass: PasetoAuthService,
     },
-    OAuthStrategy,
+    ...(process.env.OAUTH_CLIENT_ID && process.env.OAUTH_CLIENT_SECRET
+      ? [OAuthStrategy]
+      : []),
   ],
   exports: [AUTH_SERVICE_TOKEN, PassportModule],
 })

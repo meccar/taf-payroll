@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import util from 'node:util';
 import { AppModule } from './app.module';
 import { API, APP } from './shared/constants';
 import { MESSAGES } from './shared/messages';
@@ -25,6 +26,17 @@ async function bootstrap() {
 }
 
 bootstrap().catch((error) => {
-  console.error(`${MESSAGES.ERROR_STARTING_APPLICATION}`, error);
+  if (error instanceof Error) {
+    console.error(`${MESSAGES.ERROR_STARTING_APPLICATION}: ${error.message}`);
+    if (error.stack) console.error(error.stack);
+  } else {
+    const details = util.inspect(error, {
+      depth: 3,
+      maxArrayLength: 50,
+      maxStringLength: 2000,
+      breakLength: 120,
+    });
+    console.error(`${MESSAGES.ERROR_STARTING_APPLICATION}:`, details);
+  }
   process.exit(1);
 });

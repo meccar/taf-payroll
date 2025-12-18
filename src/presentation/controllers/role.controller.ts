@@ -20,11 +20,9 @@ import {
   GetAllRoleUseCase,
   UpdateRoleUseCase,
 } from 'src/application/usecases';
-import { AuthGuard as OAuthGuard } from '@nestjs/passport';
 
 @Controller('role')
 @UseGuards(AuthGuard)
-@UseGuards(OAuthGuard)
 @UseGuards(PermissionGuard)
 export class RoleController {
   constructor(

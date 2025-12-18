@@ -23,11 +23,9 @@ import {
   GetRoleClaimUseCase,
 } from 'src/application/usecases';
 import { AuthGuard } from '../guards';
-import { AuthGuard as OAuthGuard } from '@nestjs/passport';
 
 @Controller('role')
 @UseGuards(AuthGuard)
-@UseGuards(OAuthGuard)
 @UseGuards(PermissionGuard)
 export class RoleClaimController {
   constructor(
